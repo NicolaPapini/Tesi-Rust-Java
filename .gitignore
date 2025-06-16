@@ -6,6 +6,14 @@
 /Thesis.lof
 /Thesis.log
 /Thesis.out
-/Thesis.pdf
 /Thesis.synctex.gz
 /Thesis.toc
+/_minted-Thesis
+/Chapters/*.aux
+Chapters/02-StateOfTheArt.aux
+Chapters/01-Introduction.aux
+Chapters/02-StateOfTheArt.aux
+Chapters/03-Proposal.aux
+Chapters/04-Evaluation.aux
+Chapters/05-Conclusions.aux
+FrontMatter/Titlepage.aux

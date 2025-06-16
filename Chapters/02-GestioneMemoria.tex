@@ -18,13 +18,11 @@ Rust è un linguaggio di programmazione che si distingue per la sua gestione del
     \item Prevenire comportamenti indefiniti a compile-time, piuttosto che a run-time. Questo significa che il compilatore di Rust è in grado di rilevare e segnalare errori di memoria prima che il programma venga eseguito, riducendo il rischio di bug e di errori durante l'esecuzione. Inoltre, viene ridotto il numero di controlli a run-time, migliorando le prestazioni del programma. 
     % Nell'articolo di google viene riportato il vantaggio di non avere controlli a run-time.
 \end{enumerate}
-Rust non può prevenire tutti i bug ma le metodologie messe in atto per la gestione della memoria rendono un programma scritto in Rust molto più sicuro rispetto a uno scritto in altri linguaggi. 
+Rust non può prevenire tutti i bug ma le metodologie messe in atto per la gestione della memoria rendono un programma scritto in Rust molto più sicuro rispetto a uno scritto in linguaggi con meno controlli. 
 
 Un esempio concreto dell'efficacia di Rust nella prevenzione degli errori di memoria è fornito da Google \cite{android13-memorysafe}, che ha introdotto il linguaggio nello sviluppo di Android 13. In particolare, circa il 21\% del codice di Android 13 è stato scritto in Rust, e, alla data della pubblicazione, sono state scoperte zero vulnerabilità di sicurezza legate alla memoria in questo codice. Questo è un risultato significativoche dimostra come gli obiettivi prefissati da Rust siano stati raggiunti nella pratica.
-%TODO: Inserire la citazione
 
-Rust realizza questi obiettivi attraverso un sistema basato sui concetti di \textit{ownership} e \textit{borrowing}. 
-%TODO: scrivere che verrano approfondinti in seguito
+Rust realizza questi obiettivi attraverso un sistema basato sui concetti di \textit{ownership} e \textit{borrowing}. Concetti fondamentali che verrano affrontati in dettaglio nelle prossime sezioni.
 
 \section{Stack e Heap}
 Sia Java che Rust utilizzano due aree di memoria principali: lo stack e l'heap, ma la loro gestione è profondamente diversa, riflettendo i diversi modelli di memoria adottati dai due linguaggi.
@@ -40,7 +38,6 @@ In Java, l'allocazione della memoria è fortemente automatizzata. Ogni volta vie
 \end{itemize} 
 Questa è una differenza fondamentale rispetto a Java, perchè permette allo sviluppatore di avere più controllo su dove vengono allocati i dati, permettendo ottimizzazioni specifiche per le esigenze del programma. 
 
-%TODO: Creare env per rendere il codice migliore
 Ad esempio, sia in Java che in Rust, gli array hanno una dimensione fissa. Tuttavia, in Java, gli array sono allocati nell'heap e sono referenziati da variabili nello stack, mentre in Rust, poiché si conosce la loro dimensione a compile time, vengono allocati nello stack. Questo rende l'accesso agli elementi dell'array di Rust più veloce. 
 \begin{minted} [fontsize=\small] {Java}
     int[] arr = {1, 2, 3, 4, 5}; // Array allocato nell'heap
@@ -119,5 +116,4 @@ Ad esempio, in Java, il codice seguente potrebbe causare un comportamento indesi
     }
 \end{minted}
 Infatti, la modifica del nome di \texttt{p2} influisce anche su \texttt{p1}, poiché entrambi puntano allo stesso oggetto in memoria. Questo può portare a bug difficili da individuare, specialmente in programmi complessi. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
-%TODO: inserire un'esempio in cui in java un metodo modifica un oggetto non voluto
 %TODO: dall'esempio precedente posso passare a rust con passaggio di parametro a funzione
