@@ -1,0 +1,6 @@
+\begin{Verbatim}[commandchars=\\\{\}]
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{s1}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n+nb}{String}\PYG{p}{::}\PYG{n}{from}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}Hello\PYGZdq{}}\PYG{p}{);}
+\PYG{+w}{    }\PYG{k+kd}{let}\PYG{+w}{ }\PYG{n}{s2}\PYG{+w}{ }\PYG{o}{=}\PYG{+w}{ }\PYG{n}{s1}\PYG{p}{;}\PYG{+w}{ }\PYG{c+c1}{// Ownership di s1 viene trasferita a s2}
+\PYG{+w}{    }\PYG{c+c1}{// println!(\PYGZdq{}\PYGZob{}\PYGZcb{}\PYGZdq{}, s1); // Errore di compilazione}
+\PYG{+w}{    }\PYG{n+nf+fm}{println!}\PYG{p}{(}\PYG{l+s}{\PYGZdq{}\PYGZob{}\PYGZcb{}\PYGZdq{}}\PYG{p}{,}\PYG{+w}{ }\PYG{n}{s2}\PYG{p}{);}
+\end{Verbatim}

@@ -50,10 +50,10 @@ Ad esempio, sia in Java che in Rust, gli array hanno una dimensione fissa. Tutta
     let arr = [1, 2, 3, 4, 5]; // Array allocato nello stack
     println!("Il primo elemento e': {}", arr[0]);
 \end{minted}
-\subsection{Ownership}
+\section{Ownership}
 L'ownership è un concetto fondamentale in Rust il quale può essere definito come un insieme di regole che il compilatore controlla per garantire una corretta gestione della memoria. Questo significa sia garantire che non ci siano errori di memoria a run-time, sia che la memoria inutilizzata venga rilasciata correttamente per non terminare lo spazio di memoria disponibile (\textit{memory leak}). 
 
-L'obiettivo principale dell'ownership è, quindi, quello di gestire la memoria heap tenendo traccia di quali parti di codice utilizzano valori contenuti nell'heap, minimizzare valori duplicati e garantire che la memoria venga rilasciata quando non è più necessaria. 
+L'obiettivo principale dell'ownership è, quindi, quello di gestire la memoria heap tenendo traccia di quali parti di codice utilizzano valori contenuti in essa, minimizzare valori duplicati e garantire che la memoria venga rilasciata quando non è più necessaria. 
 %TODO: Forse inserire confronto con Java su performance e garbage collector 
 
 L'ownership si basa su tre regole principali: 
@@ -62,3 +62,62 @@ L'ownership si basa su tre regole principali:
     \item  Un valore può avere un solo owner alla volta. 
     \item  Quando l'owner di un valore esce dallo scope, il valore viene automaticamente rilasciato dalla memoria.
 \end{enumerate}
+Consideriamo un caso banale in cui si crea una variabile all'interno di uno scope:
+\begin{minted} [fontsize=\small] {Rust}
+    {
+        let s = "Hello";
+    }
+\end{minted}
+In questo caso, secondo la regola 3, quando la variabile \texttt{s} esce dallo scope, il valore \texttt{"Hello"} viene automaticamente rilasciato dalla memoria. In java questo non accade. La liberazione della memoria avviene attraverso la funzione \texttt{drop} che viene chiamata automaticamente da rust quando la variabile va fuori dallo scope. Dato il seguente codice equivalente in Java:
+\begin{minted} [fontsize=\small] {Java}
+    {
+        String s = "Hello";
+    }
+\end{minted}
+La memoria occupata dalla stringa \texttt{"Hello"} non viene rilasciata automaticamente quando la variabile \texttt{s} esce dallo scope ma solo quando il garbage collector esegue la raccolta dei valori non più raggiungibili. Già da questo semplice caso si può notare come l'ownership di Rust permetta di avere un controllo più preciso sulla memoria. 
+
+Un altro aspetto importante dell'ownership è che, quando si assegna un valore a un'altra variabile, l'ownership viene trasferita. Ad esempio, consideriamo il seguente codice:
+\begin{minted} [fontsize=\small] {Rust}
+    let s1 = String::from("Hello");
+    let s2 = s1; // Ownership di s1 viene trasferita a s2
+    // println!("{}", s1); // Errore di compilazione
+    println!("{}", s2);
+\end{minted}
+In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \texttt{s1} a \texttt{s2}. Dopo il trasferimento, \texttt{s1} non è più valida e qualsiasi tentativo di accedervi causerà un errore di compilazione. 
+\begin{figure}[H]
+    \label{fig:own1}
+    \centering
+    \includegraphics[scale = 0.8]{Figures/own1.pdf}
+    \caption{Visualizzazione memoria Rust dopo il trasferimento di ownership.}
+\end{figure}
+In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue quindi una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile, a meno che non sia esplicitamente richiesto dal programmatore, quindi l'operazione di copia base è poco costosa in termini di performance.
+
+Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida la variabile originale, ma crea una nuova referenza, uguale all'originale, all'oggetto esistente. In Java, il codice equivalente sarebbe:
+\begin{minted} [fontsize=\small] {Java}
+    String s1 = "Hello";
+    String s2 = s1; 
+    System.out.println(s1); // Valido
+    System.out.println(s2); // Valido
+\end{minted}
+In questo caso, quindi, entrambe le stringhe verrebbero correttamente stampate. L'approccio di Rust è più restrittivo ma questa è una caratteristica desiderabile perché permette di evitare errori di memoria comuni, come l'accesso a variabili non valide o la modifica di dati condivisi in modo imprevisto. 
+Ad esempio, in Java, il codice seguente potrebbe causare un comportamento indesiderato:
+\begin{minted} [fontsize=\small] {Java}
+    class Person {
+        String name;
+        Person(String name) {
+            this.name = name;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Person p1 = new Person("Alice");
+            Person p2 = p1; // p2 è una referenza a p1
+            p2.name = "Bob"; // Modifica il nome di p1
+            System.out.println(p1.name); // Stampa "Bob"
+        }
+    }
+\end{minted}
+Infatti, la modifica del nome di \texttt{p2} influisce anche su \texttt{p1}, poiché entrambi puntano allo stesso oggetto in memoria. Questo può portare a bug difficili da individuare, specialmente in programmi complessi. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
+%TODO: inserire un'esempio in cui in java un metodo modifica un oggetto non voluto
+%TODO: dall'esempio precedente posso passare a rust con passaggio di parametro a funzione
