@@ -20,7 +20,7 @@ Rust è un linguaggio di programmazione che si distingue per la sua gestione del
 \end{enumerate}
 Rust non può prevenire tutti i bug ma le metodologie messe in atto per la gestione della memoria rendono un programma scritto in Rust molto più sicuro rispetto a uno scritto in linguaggi con meno controlli. 
 
-Un esempio concreto dell'efficacia di Rust nella prevenzione degli errori di memoria è fornito da Google \cite{android13-memorysafe}, che ha introdotto il linguaggio nello sviluppo di Android 13. In particolare, circa il 21\% del codice di Android 13 è stato scritto in Rust, e, alla data della pubblicazione, sono state scoperte zero vulnerabilità di sicurezza legate alla memoria in questo codice. Questo è un risultato significativoche dimostra come gli obiettivi prefissati da Rust siano stati raggiunti nella pratica.
+Un esempio concreto dell'efficacia di Rust nella prevenzione degli errori di memoria è fornito da Google \cite{android13-memorysafe}, che ha introdotto il linguaggio nello sviluppo di Android 13. In particolare, circa il 21\% del nuovo codice introdotto in Android 13 è stato scritto in Rust, e, alla data della pubblicazione dell'articolo, sono state scoperte zero vulnerabilità di sicurezza legate alla memoria in questo codice. Questo è un risultato significativo che dimostra come gli obiettivi prefissati da Rust siano stati raggiunti nella pratica.
 
 Rust realizza questi obiettivi attraverso un sistema basato sui concetti di \textit{ownership} e \textit{borrowing}. Concetti fondamentali che verrano affrontati in dettaglio nelle prossime sezioni.
 
@@ -62,10 +62,10 @@ L'ownership si basa su tre regole principali:
 Consideriamo un caso banale in cui si crea una variabile all'interno di uno scope:
 \begin{minted} [fontsize=\small] {Rust}
     {
-        let s = "Hello";
+        let s = String::from("Hello");
     }
 \end{minted}
-In questo caso, secondo la regola 3, quando la variabile \texttt{s} esce dallo scope, il valore \texttt{"Hello"} viene automaticamente rilasciato dalla memoria. In java questo non accade. La liberazione della memoria avviene attraverso la funzione \texttt{drop} che viene chiamata automaticamente da rust quando la variabile va fuori dallo scope. Dato il seguente codice equivalente in Java:
+In questo caso, secondo la regola 3, quando la variabile \texttt{s} esce dallo scope, il valore \texttt{"Hello"} viene automaticamente rilasciato dalla memoria. Questo avviene attraverso la funzione \texttt{drop} che viene chiamata automaticamente da rust quando la variabile va fuori dallo scope. In java questo non accade. Dato il seguente codice equivalente in Java:
 \begin{minted} [fontsize=\small] {Java}
     {
         String s = "Hello";
@@ -84,19 +84,19 @@ In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \
 \begin{figure}[H]
     \label{fig:own1}
     \centering
-    \includegraphics[scale = 0.8]{Figures/own1.pdf}
+    \includegraphics[scale = 1]{Figures/own1.pdf}
     \caption{Visualizzazione memoria Rust dopo il trasferimento di ownership.}
 \end{figure}
-In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue quindi una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile, a meno che non sia esplicitamente richiesto dal programmatore, quindi l'operazione di copia base è poco costosa in termini di performance.
+In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance.
 
-Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida la variabile originale, ma crea una nuova referenza, uguale all'originale, all'oggetto esistente. In Java, il codice equivalente sarebbe:
+Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendono lo stato. In Java, il codice equivalente sarebbe:
 \begin{minted} [fontsize=\small] {Java}
     String s1 = "Hello";
     String s2 = s1; 
     System.out.println(s1); // Valido
     System.out.println(s2); // Valido
 \end{minted}
-In questo caso, quindi, entrambe le stringhe verrebbero correttamente stampate. L'approccio di Rust è più restrittivo ma questa è una caratteristica desiderabile perché permette di evitare errori di memoria comuni, come l'accesso a variabili non valide o la modifica di dati condivisi in modo imprevisto. 
+In questo caso, quindi, entrambe le stringhe verrebbero correttamente stampate. L'approccio adottato da Rust è decisamente più restrittivo, ma si tratta di una caratteristica desiderabile: consente infatti di evitare errori comuni legati alla gestione della memoria, come l'accesso a variabili non più valide o la modifica involontaria di dati condivisi. 
 Ad esempio, in Java, il codice seguente potrebbe causare un comportamento indesiderato:
 \begin{minted} [fontsize=\small] {Java}
     class Person {
@@ -115,5 +115,5 @@ Ad esempio, in Java, il codice seguente potrebbe causare un comportamento indesi
         }
     }
 \end{minted}
-Infatti, la modifica del nome di \texttt{p2} influisce anche su \texttt{p1}, poiché entrambi puntano allo stesso oggetto in memoria. Questo può portare a bug difficili da individuare, specialmente in programmi complessi. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
+In questo esempio, la modifica del campo \texttt{name} di \texttt{p2} influisce anche \texttt{p1}, poiché entrambi i riferimenti puntano allo stesso oggetto in memoria. Questo comportamento puà causare bug sottili e difficili da individuare, spcialmente in contesti complessi o concorrenti. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
 %TODO: dall'esempio precedente posso passare a rust con passaggio di parametro a funzione
