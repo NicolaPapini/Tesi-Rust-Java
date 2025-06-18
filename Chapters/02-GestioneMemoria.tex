@@ -87,7 +87,7 @@ In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \
     \includegraphics[scale = 1]{Figures/own1.pdf}
     \caption{Visualizzazione memoria Rust dopo il trasferimento di ownership.}
 \end{figure}
-In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance.
+In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance. %TODO: Considerare stack only data copy? dove inserirlo?
 
 Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendono lo stato. In Java, il codice equivalente sarebbe:
 \begin{minted} [fontsize=\small] {Java}
@@ -100,20 +100,67 @@ In questo caso, quindi, entrambe le stringhe verrebbero correttamente stampate. 
 Ad esempio, in Java, il codice seguente potrebbe causare un comportamento indesiderato:
 \begin{minted} [fontsize=\small] {Java}
     class Person {
-        String name;
-        Person(String name) {
+        private String name;
+        public Person(String name) {
             this.name = name;
+        }
+
+        public void setName(String name) {
+            this.name = name;
+        }
+
+        public String getName() {
+            return name;
         }
     }
 
     public class Main {
         public static void main(String[] args) {
             Person p1 = new Person("Alice");
-            Person p2 = p1; // p2 è una referenza a p1
-            p2.name = "Bob"; // Modifica il nome di p1
-            System.out.println(p1.name); // Stampa "Bob"
+            Person p2 = p1;
+            p2.setName("Bob"); // Modifica il nome di p2
+            System.out.println(p1.getName()); // Stampa "Bob"
         }
     }
 \end{minted}
-In questo esempio, la modifica del campo \texttt{name} di \texttt{p2} influisce anche \texttt{p1}, poiché entrambi i riferimenti puntano allo stesso oggetto in memoria. Questo comportamento puà causare bug sottili e difficili da individuare, spcialmente in contesti complessi o concorrenti. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
-%TODO: dall'esempio precedente posso passare a rust con passaggio di parametro a funzione
+In questo esempio, la modifica del campo \texttt{name} di \texttt{p2} influisce anche \texttt{p1}, poiché entrambi i riferimenti puntano allo stesso oggetto in memoria. Questo comportamento può causare bug sottili e difficili da individuare, specialmente in contesti complessi o concorrenti. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
+
+Il meccanismo di passaggio degli argomenti in Rust è strettamente legato al concetto di ownership. Quando si passa una variabile a una funzione, l'ownership di quella variabile viene trasferita alla funzione, rendendo la variabile originale non più utilizzabile dopo la chiamata.Questo avviene perché, in Rust, il passaggio di un argomento avviene per \textit{move}. Di conseguenza, la funzione riceve l'ownership della variabile e ne diventa pienamente responsabile. Ad esempio, consideriamo il seguente codice:
+\begin{minted} [fontsize=\small] {Rust}
+    fn main() {
+        let s1 = String::from("Hello");
+        print_string(s1); 
+        // Ownership di s1 viene trasferita a print_string
+        println!("{}", s1); // Errore di compilazione
+    }
+
+    fn print_string(s: String) {
+        println!("{}", s);
+    }       
+\end{minted}
+Ciò che accade è: la variabile \texttt{s1} viene passata alla funzione \texttt{print\_string}, ossia \texttt{s1} viene copiata in \texttt{s} e, quindi, l'ownership dei dati di \texttt{s1} passa a \texttt{s}. Come risultato, \texttt{s1} non è più valida dopo la chiamata alla funzione, e qualsiasi tentativo di accedervi causerà un errore di compilazione. 
+È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica principalmente ai tipi di dati che allocano memoria sull'heap, come \texttt{String}, \texttt{Vec} o strutture complesse. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'\textit{ownership}, e quindi l'invalidazione del valore originale. Tuttavia, per i tipi semplici e a dimensione fissa nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}), i booleani (\texttt{bool}), i caratteri (\texttt{char}) e i puntatori a funzione, Rust applica una semantica diversa: questi tipi implementano automaticamente il trait \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'\textit{ownership} non viene trasferita.
+
+Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e utilizzabili, senza causare errori di compilazione. Ecco un esempio:
+
+\begin{minted}[fontsize=\small]{rust}
+    fn main() {
+        let x = 42;
+        print_value(x); // x viene copiato, non spostato
+        println!("{}", x); // x è ancora valido
+    }
+
+    fn print_value(n: i32) {
+        println!("{}", n);
+    }
+\end{minted}
+In sintesi, in Rust:
+\begin{itemize}
+    \item I tipi che implementano il trait \texttt{Copy} vengono copiati senza invalidare il valore originale.
+    \item I tipi che non implementano il trait \texttt{Copy} (come \texttt{String}, \texttt{Vec}) vengono spostati tramite \textit{move}, trasferendo l'\textit{ownership} ed evitando deep copies non necessarie.
+\end{itemize}
+Questa distinzione riflette chiaramente la filosofia di Rust nel garantire la sicurezza nell'accesso alla memoria:
+\begin{itemize}
+    \item Per i tipi che possono contenere dati allocati dinamicamente o che possono essere modificati a runtime, Rust usa la semantica del \textit{move}, che impedisce di accedere a un valore dopo che la sua \textit{ownership} è stata trasferita altrove, evitando così potenziali problemi di accesso concorrente o modifiche inattese.
+    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello \textit{stack} e sono di solito immutabili per definizione (come interi o booleani), Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
+\end{itemize}
