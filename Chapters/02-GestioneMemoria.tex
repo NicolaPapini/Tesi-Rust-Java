@@ -84,7 +84,7 @@ In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \
 \begin{figure}[H]
     \label{fig:own1}
     \centering
-    \includegraphics[scale = 1]{Figures/own1.pdf}
+    \includegraphics[scale = 1]{Figures/own1.drawio.pdf}
     \caption{Visualizzazione memoria Rust dopo il trasferimento di ownership.}
 \end{figure}
 In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance.
@@ -114,31 +114,36 @@ Il meccanismo di passaggio degli argomenti a funzione in Rust è strettamente le
 Ciò che accade è: la variabile \texttt{s1} viene passata alla funzione \texttt{print\_string}, ossia \texttt{s1} viene copiata in \texttt{s} e, quindi, l'ownership dei dati di \texttt{s1} passa a \texttt{s}. Come risultato, \texttt{s1} non è più valida dopo la chiamata alla funzione, e qualsiasi tentativo di accedervi causerà un errore di compilazione. 
 
 Java, come Rust, utilizza il \textit{pass-by-value}, ma il passaggio di un oggetto a una funzione non invalida la variabile originale, questo può portare a situazioni sgradevoli. Consideriamo il seguente codice Java:
-\begin{minted} [fontsize=\small] {Java}
-    class Person {
-        private String name;
-        public Person(String name) {
-            this.name = name;
+\begin{listing}[H]
+    \begin{minted} [fontsize=\small] {Java}
+        class Person {
+            private String name;
+            public Person(String name) {
+                this.name = name;
+            }
+
+            public void setName(String name) {
+                this.name = name;
+            }
+
+            public String getName() {
+                return name;
+            }
         }
 
-        public void setName(String name) {
-            this.name = name;
+        public class Main {
+            public static void main(String[] args) {
+                Person p1 = new Person("Alice");
+                Person p2 = p1;
+                p2.setName("Bob"); // Modifica il nome di p2
+                System.out.println(p1.getName()); // Stampa "Bob"
+            }
         }
+    \end{minted}
+    \caption{Modifica di un oggetto tramite un riferimento in Java.}
+    \label{lst:java-reference}
+\end{listing}
 
-        public String getName() {
-            return name;
-        }
-    }
-
-    public class Main {
-        public static void main(String[] args) {
-            Person p1 = new Person("Alice");
-            Person p2 = p1;
-            p2.setName("Bob"); // Modifica il nome di p2
-            System.out.println(p1.getName()); // Stampa "Bob"
-        }
-    }
-\end{minted}
 In questo esempio, la modifica del campo \texttt{name} di \texttt{p2} influisce anche \texttt{p1}, poiché entrambi i riferimenti puntano allo stesso oggetto in memoria. Questo comportamento può causare bug sottili e difficili da individuare, specialmente in contesti complessi o concorrenti\footnote{È utile notare che, in Java, la keyword \texttt{final} può essere utilizzata per dichiarare una variabile come immutabile. Tuttavia, \texttt{final} non rende immutabile l'oggetto a cui la variabile si riferisce: i campi dell'oggetto possono ancora essere modificati tramite metodi mutator.}. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché, una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
 
 È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica ai tipi di dati che allocano memoria sull'heap, come \texttt{String} o \texttt{Vec}. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'\textit{ownership}, e quindi l'invalidazione del valore originale. Tuttavia, per tipi primitivi e a dimensione fissa nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}, etc.), Rust applica una semantica diversa: questi tipi implementano automaticamente il trait \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'\textit{ownership} non viene trasferita.
@@ -192,21 +197,86 @@ L'ownership di una variabile segue sempre lo stesso principio: assegnare un valo
 \end{listing}
 
 \section{Borrowing}
-É evidente come l'ownership sia un concetto potente per la gestione della memoria, ma può risultare troppo restrittivo in alcune situazioni come quella riportata nel codice (\ref{lst:ownership-return}). Rust per risolvere questo problema introduce il concetto di \textit{borrowing}, che consente di prendere in prestito un valore senza trasferirne l'ownership, consentendo una maggiore flessibilità. Il \textit{borrowing} è realizzato attraverso il concetto di \textit{riferimento} (reference). Il riferimento in Rust non ha le stesse proprietà di un riferimento in Java: 
+É evidente come l'ownership sia un concetto potente per la gestione della memoria, ma può risultare troppo restrittivo e macchinoso in situazioni come quella riportata nel codice (\ref{lst:ownership-return}). Rust per risolvere questo problema introduce il concetto di \textit{borrowing}, che consente di prendere in prestito un valore senza trasferirne l'ownership, consentendo una maggiore flessibilità. Un \textit{borrowing} è realizzato attraverso il concetto di \textit{riferimento} (reference). Il riferimento in Rust non ha le stesse proprietà di un riferimento in Java: 
 \begin{itemize}
     \item In Java un riferimento è l'indirizzo di memoria di un oggetto, e può essere utilizzato per accedere e modificare l'oggetto stesso. 
     
-    Un riferimento Java può essere \texttt{null}, il che significa che non punta a nessun oggetto valido in memoria. Questo ha gravi ripercussioni sulla sicurezza del programma, poiché l'accesso a un riferimento \texttt{null} può causare un \texttt{NullPointerException} a run-time. Lo stesso creatore della nozione del riferimento \texttt{null}, Tony Hoare, lo ha definito "billion dollar mistake"\cite{hoare-null-reference}, un errore che ha portato a innumerevoli bug e vulnerabilità nei programmi Java.
+    Inoltre, può assumere il valore \texttt{null}, ossia non punta a un oggetto in memoria. Questo ha gravi ripercussioni sulla sicurezza del programma, poiché l'accesso a un riferimento \texttt{null} può causare un \texttt{NullPointerException} a run-time. Lo stesso creatore della nozione di riferimento \texttt{null}, Tony Hoare, lo ha definito "billion dollar mistake"\cite{hoare-null-reference}, a causa dei costi che le aziende devono, e dovranno, sostenere per bug e vulnerabilità dovuti a \texttt{null}.
     \item In Rust, un riferimento è anch'esso l'indirizzo di memoria di un valore (mutabile o immutabile). Tuttavia, a differenza di Java, un riferimento in Rust non può essere \texttt{null}. Il compilatore di Rust garantisce che ogni riferimento punti sempre a un valore valido di un tipo specifico per tutta la durata della sua esistenza. Questo dà importanti garanzie di sicurezza, poiché elimina la possibilità di avere errori a run-time legati a riferimenti nulli.
     %TODO: inserire come rust gestisce l'assenza di valore 
 \end{itemize}
-I riferimenti in Rust sono ottenuti utilizzando l'operatore di referenziazione \texttt{\&}. Ad esempio:
+I riferimenti in Rust sono ottenuti utilizzando l'operatore di referenziazione \texttt{\&} che, in generale, genera un riferimento alla variabile su cui viene applicato. Ad esempio:
 \begin{minted}[fontsize=\small]{rust}
     fn main() {
-        let s = String::from("Hello");
+        let s1 = String::from("Hello");
         print_string(&s); 
     }
-    fn print_string(s: &String) {
-        println!("{}", s);
+    fn print_string(s2: &String) {
+        println!("{}", s2);
     }
 \end{minted} 
+In questo esempio, \texttt{s1} è una variabile che si trova nello stack e contiene un valore allocato nell'heap. Pertanto, quando si applica l'operatore \texttt{\&} a \texttt{s1}, si ottiene un riferimento a una variabile sullo stack. Quindi, si hanno due livelli di indirezione: \texttt{s2} per poter accedere a \texttt{"Hello"} deve prima seguire il riferimento a \texttt{s1} e poi accedere al valore allocato nell'heap.  
+\begin{figure}[H]
+    \label{fig:bor1}
+    \centering
+    \includegraphics[scale = 1]{Figures/bor1.drawio.pdf}
+    \caption{Visualizzazione memoria Rust durante la chiamata di \texttt{print\_string()}.}
+\end{figure} 
+In Java, non è possibile avere questo livello di indirezione, poiché i riferimenti puntano direttamente a oggetti in memoria. Infatti, il codice equivalente in Java sarebbe:
+\begin{minted}[fontsize=\small]{Java}
+    public class Main {
+        public static void main(String[] args) {
+            String s1 = "Hello";
+            printString(s1); 
+        }
+        public static void printString(String s2) {
+            System.out.println(s2);
+        }
+    }
+\end{minted}
+In questo caso, \texttt{s1} e \texttt{s2} sono entrambi riferimenti all'oggetto \texttt{"Hello"} in memoria.
+\begin{figure}[H]
+    \label{fig:bor2}
+    \centering
+    \includegraphics[scale = 1]{Figures/bor2.drawio.pdf}
+    \caption{Visualizzazione memoria Java durante la chiamata di \texttt{printString()}.}
+\end{figure} 
+Per eseguire l'operazione opposta, ossia ottenere il valore a cui punta un riferimento, si utilizza l'operatore di dereferenziazione \texttt{*}. 
+
+Abbiamo già visto come le variabili in Rust siano immutabili per definizione, ma è possibile dichiararle come mutabili utilizzando la keyword \texttt{mut}. I riferimenti in Rust hanno un comportamento simile: sono immutabili di default, ma possono essere dichiarati come mutabili utilizzando la keyword \texttt{mut}. Quindi, attraverso i riferimenti, è possibile accedere a un dato attraverso variabili diverse. Questo è utile per evitare la duplicazione di dati o per condividere dati tra diverse parti del programma. Tuttavia, quando si permette a più parti del codice di accedere allo stesso valore, è necessario garantire che non ci siano conflitti tra le operazioni di lettura e scrittura. Ad esempio:
+\begin{itemize}
+    \item Deallocando il valore mentre un'altra parte del codice lo sta ancora utilizzando.
+    \item Modificando il valore mentre un' altra parte del codice lo sta leggendo.
+    \item Modificando il valore mentre un'altra parte del codice lo sta modificando.
+\end{itemize} 
+In Java, i tre casi sopra elencati sono permessi e la responsabilità di evitare conflitti ricade sul programmatore come già visto nell'esempio (\ref{lst:java-reference}). Il problema è ancora più evidente in contesti concorrenti in cui più thread possono agire su una stessa variabile. Rust, invece, introduce un sistema di regole che impedisce questi conflitti a compile time:
+\begin{itemize}
+    \item Se si ha un riferimento mutabile a un valore, allora quello sarà l'unica variabile che può accedere a quel valore. Questo impedisce che una parte di codice modifichi un valore mentre un'altra parte lo sta leggendo o modificando. Se non ci sono riferimenti mutabili, allora non ci sono restrizioni sul numero di riferimenti immutabili che possono esistere contemporaneamente. 
+    \item Lo scope dei riferimenti Rust inizia quando il riferimento viene creato e termina l'ultima volta che il riferimento viene utilizzato. 
+\end{itemize}
+Vediamo un esempio che mostra l'importanza di queste regole:
+\begin{minted}[fontsize=\small]{rust}
+    fn main() {
+        let mut v = vec![1, 2, 3];
+        let r1 = &v[1];
+        v.push(4);
+        // push prende in prestito v in modo mutabile
+        println!("Il secondo elemento e': {}", r1);
+    } 
+\end{minted}
+Un \texttt{vec} in Rust ha un comportamento simile a un \texttt{ArrayList} in Java, ossia è un array che cresce dinamicamente. Questo significa che quando si aggiunge un elemento, il \texttt{vec} potrebbe dover allocare nuova memoria e copiare i dati esistenti in essa. Quindi, il riferimento \texttt{r1} potrebbe non puntare più al secondo elemento del \texttt{vec} dopo l'operazione \texttt{push}. Se Rust permettesse questo codice, \texttt{r1} diventerebbe un dangling pointer, cioè un riferimento non più valido. In particolare, lo scope di \texttt{r1} termina dopo la sua stampa, quindi se non ci fosse l'istruzione di stampa non si avrebbero errori di compilazione perché lo scope di \texttt{r1} terminerebbe dopo la sua dichiarazione. Tuttavia, il compilatore impedisce questa situazione, garantendo sicurezza a tempo di compilazione.
+
+In Java il problema dei dangling pointer è quasi inesistente, poiché i riferimenti non possono essere invalidati in questo modo. L'unico modo di ottenere un dangling pointer in Java è quello di avere un riferimento non inizializzato o esplicitamente impostato a \texttt{null}. Il codice equivalente in Java sarebbe:
+\begin{minted}[fontsize=\small]{Java}
+    public class Main {
+        public static void main(String[] args) {
+            ArrayList<Integer> v = new ArrayList<>();
+            v.add(1);
+            Integer r1 = v.get(0);
+            v.add(2);
+        }
+    }
+\end{minted}
+Questo codice compila e non genera errori a run-time poiché in Java si ha un livello di indirezione in più: \text{r1} in Rust è l'indirizzo di memoria del valore "2" nel \texttt{vec}, mentre in Java è l'indirizzo di memoria dell'oggetto \texttt{Integer} che contiene il valore "2". Quindi se l'\texttt{ArrayList} venisse ridimensionato e allocato in un area di memoria diversa, ciò che viene copiato sono i riferimenti agli oggetti, non gli oggetti stessi, quindi la variabile \texttt{r1} è ancora valida perché l'oggetto che punta non ha cambiato posizione in memoria. 
+%TODO Inserire grafico memoria Java
+%TODO Vedere lifetimes in Rust
