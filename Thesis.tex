@@ -26,6 +26,7 @@
 \newcommand{\myTime}{Anno Accademico 202X-202Y\xspace}
 %--------------------------------------------------------------
 
+
 \usepackage{minted}
 
 \usepackage[utf8]{inputenc} 
@@ -49,6 +50,7 @@
  \usepackage[eulerchapternumbers,linedheaders,subfig,beramono,eulermath,
 parts,dottedtoc]{classicthesis}
 
+\captionsetup[listing]{name=Codice}
 %--------------------------------------------------------------
 % Layout setting
 %--------------------------------------------------------------
@@ -81,6 +83,7 @@ parts,dottedtoc]{classicthesis}
   	breakatwhitespace=true,
   	tabsize=3
 }
+
 %--------------------------------------------------------------
 \begin{document}
 \frenchspacing
@@ -121,6 +124,7 @@ parts,dottedtoc]{classicthesis}
 %--------------------------------------------------------------
 % Bibliography
 %--------------------------------------------------------------
+%\bibliographystyle{unsrt} Entries are sorted by order of citation
 \bibliographystyle{plain} 
 \bibliography{Bibliography} % Entries are in the Bibliography.bib file
 
