@@ -1,32 +1,31 @@
 % !TEX root = ../Thesis.tex
 
 \chapter{Gestione della memoria}
-Questo capitolo confronta due approcci alla gestione della memoria: quello di Java e quello di Rust. Entrambi i linguaggi sono progettati per essere sicuri e facili da usare, ma differiscono notevolmente nel modo in cui gestiscono la memoria e garantiscono la sicurezza del programma:
+Questo capitolo esplorerà nel dettaglio come Java e Rust affrontano il tema della gestione della memoria. I due linguaggi adottano due filosofie molto diverse:
 \begin{itemize}
-    \item Java affida al \textit{Garbage Collector(GC)} il compito di liberare la memoria automaticamente, semplificando lo sviluppo ma introducento overhead. 
+    \item Java affida al \textit{Garbage Collector(GC)} il compito di liberare la memoria automaticamente, semplificando lo sviluppo ma introducendo overhead. 
     \item Rust elimina il GC grazie a un sistema di \textit{ownership} e \textit{borrowing}, garantendo deallocazione deterministica e sicurezza a compile-time. 
 \end{itemize}
-Questo capitolo esplorà nel dettaglio le implicazioni pratiche di questi approcci.
-
 \section{L'approccio di Java}
-Java è un linguaggio di programmazione progettato per essere semplice da usare e portabile, con una gestione della memoria che mira a garantire sicurezza e facilità d'uso a scapito di un controllo diretto da parte del programmatore. Java raggiunge questi obiettivi principalmente attraverso l'uso di un \textit{garbage collector} e un ambiente di esecuzione controllato (la Java Virtual Machine - JVM). Gli aspetti fondamentali dell'approccio di Java sono:
+Java è un linguaggio di programmazione progettato per essere semplice, portabile e sicuro, con una gestione della memoria che mira ridurre la complessità e prevenire errori comuni legati all'uso diretto delle risorse. Java raggiunge questi obiettivi affidando l'intera gestione della memoria alla Java Virtual Machine (JVM). Gli aspetti fondamentali dell'approccio di Java sono:
 
 \begin{enumerate}
-\item La gestione automatica della memoria tramite il garbage collector, che si occupa di identificare e liberare la memoria occupata da oggetti non più raggiungibili nel programma, prevenendo così problemi comuni, come i memory leak. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente l'allocazione e la deallocazione della memoria, riducendo la probabilità di errori nel codice.
-\item La prevenzione di comportamenti indefiniti principalmente a run-time, attraverso un controllo rigoroso dell'accesso alla memoria e la gestione delle eccezioni. 
+\item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono creati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
+\item La gestione deallocazione automatica tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni, come i memory leak o dangling pointer. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
+\item La prevenzione di comportamenti indefiniti a run-time, attraverso un controllo rigoroso dell'accesso alla memoria a runtime: ad esempio, accessi a riferimenti nulli generano eccezioni gestibili da parte dello sviluppatore. 
 \end{enumerate}
 
-Sebbene l'approccio di Java renda lo sviluppo più semplice e sicuro rispetto a linguaggi senza garbage collector, come C e C++, l'uso del garbage collector introduce una certa imprevedibilità nelle prestazioni, in quanto il processo di garbage collection deve essere eseguito in concorrenza con l'esecuzione del programma. 
+Tuttavia, l'approccio automatico della gestione della memoria porta alcuni svantaggi per quanto riguarda le prestazioni del programma. Il garbage collector, infatti, introduce un overhead significativo, poiché deve periodicamente eseguire la scansione della memoria per identificare gli oggetti non più raggiungibili e liberare la memoria occupata da essi. Questo processo può causare pause impreviste nell'esecuzione del programma, che possono essere problematiche quando si richiedono alte prestazioni. La JVM moderna implementa algoritmi di garbage collection avanzati per cercare di ridurre al minimo le interruzioni e ottimizzare le prestazioni, ma il costo di queste operazioni rimane comunque un fattore da considerare. 
 \section{L'approccio di Rust}
-Rust è un linguaggio di programmazione che si distingue per la sua gestione della memoria, evitando la necessità di un garbage collector e garantendo al contempo sicurezza e prestazioni elevate. Rust ha due obiettivi principali:
+Rust è un linguaggio di programmazione moderno progettato per garantire sicurezza nella gestione della memoria senza fare uso di un garbage collector. Rust ha due obiettivi principali:
 \begin{enumerate}
     \item  Garantire che il programma sia privo di comportamenti indefiniti, ovvero situazioni in cui il programma può agire in modo imprevedibile. Un esempio tipico è l'accesso a memoria non valida, che può portare all'esecuzione di codice con dati non inizializzati o causare errori di memoria come segmentation fault. 
-    \item Prevenire comportamenti indefiniti a compile-time, piuttosto che a run-time. Questo significa che il compilatore di Rust è in grado di rilevare e segnalare errori di memoria prima che il programma venga eseguito, riducendo il rischio di bug e di errori durante l'esecuzione. Inoltre, viene ridotto il numero di controlli a run-time, migliorando le prestazioni del programma. 
+    \item Eseguire la prevenzione di comportamenti indefiniti a compile-time, piuttosto che a run-time. Questo significa che il compilatore di Rust è in grado di rilevare e segnalare errori di memoria prima che il programma venga eseguito, riducendo il rischio di bug e di errori durante l'esecuzione. 
     % Nell'articolo di google viene riportato il vantaggio di non avere controlli a run-time.
 \end{enumerate}
-Rust non può prevenire tutti i bug ma le metodologie messe in atto per la gestione della memoria rendono un programma scritto in Rust molto più sicuro rispetto a uno scritto in linguaggi con meno controlli. 
+Rust raggiunge questi obiettivi attraverso un sistema di gestione della memoria basato su \textit{ownership} e \textit{borrowing}, concetti affrontati nelle prossime sezioni. L'approccio di Rust consente di evitare interamente classi di errori comuni nei linguaggi tradizionali: buffer overflow, dangling pointer, race condition sui dati condivisi. Inoltre, poiché questi controlli vengono effettuati a compile-time, Rust riduce drasticamente la necessità di controlli a run-time, migliorando le prestazioni senza sacrificare la sicurezza. 
 
-Un esempio concreto dell'efficacia di Rust nella prevenzione degli errori di memoria è fornito da Google \cite{android13-memorysafe}, che ha introdotto il linguaggio nello sviluppo di Android 13. In particolare, circa il 21\% del nuovo codice introdotto in Android 13 è stato scritto in Rust, e, alla data della pubblicazione dell'articolo, sono state scoperte zero vulnerabilità di sicurezza legate alla memoria in questo codice. Questo è un risultato significativo che dimostra come gli obiettivi prefissati da Rust siano stati raggiunti nella pratica.
+Rust non può prevenire tutti i possibili bug ma le metodologie messe in atto per la gestione della memoria rendono un programma scritto in Rust molto più sicuro rispetto a uno scritto in linguaggi con meno controlli. Un esempio concreto è fornito da Google \cite{android13-memorysafe}, che ha introdotto il linguaggio nello sviluppo di Android 13. In particolare, circa il 21\% del nuovo codice introdotto in Android 13 è stato scritto in Rust, e, alla data della pubblicazione dell'articolo, non sono state scoperte vulnerabilità di sicurezza legate alla memoria in questo codice. Questo è un risultato significativo che dimostra come gli obiettivi prefissati da Rust siano stati raggiunti nella pratica.
 
 Rust realizza questi obiettivi attraverso un sistema basato sui concetti di \textit{ownership} e \textit{borrowing}. Concetti fondamentali che verrano affrontati in dettaglio nelle prossime sezioni.
 
@@ -35,9 +34,9 @@ Sia Java che Rust utilizzano due aree di memoria principali: lo stack e l'heap, 
 
 Lo stack è un'area di memoria strutturata con una struttura dati stack LIFO (Last In, First Out). La memoria stack è contigua e i dati memorizzati al suo interno sono in posizione fissa rispetto allo stack pointer, un puntatore che punta all'ultimo elemento inserito. Questo permette un accesso rapido ai dati usando indirizzi di memoria calcolati in modo semplice tramite un offset rispetto allo stack pointer. Inoltre, allocazione e deallocazione della memoria stack sono molto veloci poiché avvengono spostando lo stack pointer, avanti o indietro, di un numero di byte opportuno rispetto alla dimensione del dato e all'architettura della CPU.
 
-L'heap, al contrario, è un'area di memoria non strutturata, in cui i dati possono essere allocati in qualsiasi sua posizione. L'allocazione e la deallocazione della memoria heap richiedono operazioni più complesse rispetto allo stack, poiché il sistema operativo deve tenere traccia degli spazi liberi e occupati. Questo può portare a un utilizzo meno efficiente della memoria (frammentazione) e a un accesso più lento ai dati rispetto allo stack. 
+L'heap, al contrario, è un'area di memoria in cui i dati possono essere allocati in qualsiasi sua posizione. L'allocazione e la deallocazione della memoria heap richiedono operazioni più complesse rispetto allo stack, poiché il sistema operativo deve tenere traccia degli spazi liberi e occupati. Questo può portare a un utilizzo meno efficiente della memoria (frammentazione) e a un accesso più lento ai dati rispetto allo stack. 
 
-In Java, l'allocazione della memoria è fortemente automatizzata. Ogni volta viene creato un oggetto, tramite la keyword \texttt{new}, viene allocata memoria heap nel quale sarà memorizzato l'oggetto. L'uso dello stack è limitato a variabili di tipo primitivo e variabili locali. Al contrario, Rust adotta un modello più esplicito e flessibile. In rust, la variabili possono essere allocate sia nello stack che nell'heap, a seconda dalla conoscenza a compile time delle dimensioni del dato:
+In Java, l'allocazione della memoria è fortemente automatizzata. Ogni volta viene creato un oggetto, tramite la keyword \texttt{new}, viene allocata dinamicamente memoria heap nel quale sarà memorizzato l'oggetto. L'uso dello stack è limitato a variabili di tipo primitivo e variabili locali. Al contrario, Rust adotta un modello più esplicito e flessibile. In rust, la variabili possono essere allocate sia nello stack che nell'heap, a seconda dalla conoscenza a compile time delle dimensioni del dato:
 \begin{itemize}
     \item  Se la variabile ha una dimensione fissa nota a compile time, viene allocata nello stack. É possibile allocare nell'heap anche variabili di dimensione fissa attraverso \texttt{Box}\footnote{\texttt{Box<T>} è uno smart pointer fornito dalla standard library di Rust che consente di allocare un valore di tipo \texttt{T} sull'heap.}.
     \item  Se la variabile ha una dimensione variabile o non nota a compile time, viene allocata nell'heap. 
@@ -71,10 +70,10 @@ Consideriamo un caso banale in cui si crea una variabile all'interno di uno scop
         let s = String::from("Hello");
     }
 \end{minted}
-In questo caso, secondo la regola 3, quando la variabile \texttt{s} esce dallo scope, il valore \texttt{"Hello"} viene automaticamente rilasciato dalla memoria. Questo avviene attraverso la funzione \texttt{drop} che viene chiamata automaticamente da rust quando la variabile esce dallo scope. In java questo non accade. Dato il seguente codice equivalente in Java:
+In questo caso, secondo la regola 3, quando la variabile \texttt{s} esce dallo scope, il valore \texttt{"Hello"} viene automaticamente rilasciato dalla memoria. Questo avviene attraverso la funzione \texttt{drop} che viene chiamata automaticamente da rust quando la variabile esce dallo scope. In Java questo non accade. Dato il seguente codice equivalente in Java:
 \begin{minted} [fontsize=\small] {Java}
     {
-        String s = "Hello";
+        String s = new String("Hello");
     }
 \end{minted}
 La memoria occupata dalla stringa \texttt{"Hello"} non viene rilasciata automaticamente quando \texttt{s} esce dallo scope, ma solo quando il garbage collector esegue la raccolta dei valori non più raggiungibili. Già da questo semplice caso si può notare come l'ownership di Rust permetta di avere un controllo più preciso sulla memoria. 
@@ -83,7 +82,7 @@ Un altro aspetto importante dell'ownership è che, quando si assegna un valore a
 \begin{minted} [fontsize=\small] {Rust}
     let s1 = String::from("Hello");
     let s2 = s1; // Ownership di s1 viene trasferita a s2
-    // println!("{}", s1); // Errore di compilazione
+    println!("{}", s1); // Errore di compilazione
     println!("{}", s2);
 \end{minted}
 In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \texttt{s1} a \texttt{s2}. Dopo il trasferimento, \texttt{s1} non è più valida e qualsiasi tentativo di accedervi causerà un errore di compilazione. 
@@ -95,7 +94,7 @@ In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \
 \end{figure}
 In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. L'operazione di move è a tutti gli effetti come un trasferimento di proprietà legale, dove il vecchio proprietario non può più accedere alla proprietà venduta. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance.
 
-Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendono lo stato. In Java, il codice equivalente sarebbe:
+Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendone lo stato. In Java, il codice equivalente sarebbe:
 \begin{minted} [fontsize=\small] {Java}
     String s1 = "Hello";
     String s2 = s1; 
@@ -149,13 +148,11 @@ Java, come Rust, utilizza il \textit{pass-by-value}, ma il passaggio di un ogget
     \caption{Modifica di un oggetto tramite un riferimento in Java.}
     \label{lst:java-reference}
 \end{listing}
-
 Nell'esempio (\ref{lst:java-reference}), la modifica del campo \texttt{name} di \texttt{p2} influisce anche \texttt{p1}, poiché entrambi i riferimenti puntano allo stesso oggetto in memoria. Questo comportamento può causare bug sottili e difficili da individuare, specialmente in contesti complessi o concorrenti\footnote{È utile notare che, in Java, la keyword \texttt{final} può essere utilizzata per dichiarare una variabile come immutabile. Tuttavia, \texttt{final} non rende immutabile l'oggetto a cui la variabile si riferisce: i campi dell'oggetto possono ancora essere modificati tramite metodi mutator.}. In Rust, invece, il trasferimento di ownership impedisce il comportamento appena descritto, poiché, una volta che l'ownership è stata trasferita, la variabile originale non può più essere utilizzata.
 
-È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica ai tipi di dati che allocano memoria sull'heap, come \texttt{String} o \texttt{Vec}. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'\textit{ownership}, e quindi l'invalidazione del valore originale. Tuttavia, per tipi primitivi e a dimensione fissa nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}, etc.), Rust applica una semantica diversa: questi tipi implementano automaticamente il trait \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'\textit{ownership} non viene trasferita.
+È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica ai tipi di dati che allocano memoria sull'heap, come \texttt{String} o \texttt{Vec}. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'ownership, e quindi l'invalidazione del valore originale. Tuttavia, per tipi primitivi e a dimensione fissa nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}, etc.), Rust applica una semantica diversa: questi tipi implementano automaticamente il trait \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'ownership non viene trasferita.
 
 Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e utilizzabili, senza causare errori di compilazione. Ecco un esempio:
-
 \begin{minted}[fontsize=\small]{rust}
     fn main() {
         let x = 42;
@@ -170,7 +167,7 @@ Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e util
 Questa distinzione riflette chiaramente la filosofia di Rust nel garantire la sicurezza nell'accesso alla memoria:
 \begin{itemize}
     \item Per i tipi che contengono dati allocati dinamicamente o che possono essere modificati a runtime, Rust usa la semantica del \textit{move}, che impedisce di accedere a un valore dopo che la sua \textit{ownership} è stata trasferita altrove, evitando così potenziali problemi di accesso concorrente o modifiche inattese.
-    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack e sono di solito immutabili per definizione (come interi o booleani) \footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.}, Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
+    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack, solitamente immutabili per definizione (come interi o booleani) \footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.}, Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
 \end{itemize}
 L'ownership può essere trasferita anche con le funzioni che ritornano un valore. In questo caso, un assegnamento a una variabile di un valore restituito da una funzione comporta il trasferimento dell'ownership dalla funzione alla variabile. Ad esempio:
 \begin{minted}[fontsize=\small]{rust}
@@ -184,7 +181,7 @@ L'ownership può essere trasferita anche con le funzioni che ritornano un valore
         s // Ownership di s viene trasferita a s1
     }
 \end{minted}
-L'ownership di una variabile segue sempre lo stesso principio: assegnare un valore a una variabile trasferisce l'ownership. Quando una variabile che include dati nell'heap esce dallo scope, il compilatore chiama automaticamente la funzione \texttt{drop} per rilasciare la memoria occupata da quei dati, a meno che l'ownership non sia stata trasferita a un'altra variabile.
+L'ownership di una variabile segue sempre lo stesso principio: assegnare il valore a un'altra variabile trasferisce l'ownership. Quando una variabile che include dati nell'heap esce dallo scope, il compilatore chiama automaticamente la funzione \texttt{drop} per rilasciare la memoria occupata da quei dati, a meno che l'ownership non sia stata trasferita a un'altra variabile.
 \begin{listing}[H]
     \begin{minted}[fontsize=\small]{rust}
         fn main() {
@@ -202,18 +199,20 @@ L'ownership di una variabile segue sempre lo stesso principio: assegnare un valo
     \label{lst:ownership-return}
 \end{listing}
 
-Quindi, se volessimo passare un valore a una funzione e riutilizzarlo dopo la chiamata, dovremmo ritornare quel valore al termine della funzione, eventualmente, in aggiunta ad altri valori che la funzione calcola\footnote{Questo può essere fatto tramite il tipo \texttt{Tuple}: un array di dimensione fissa in cui è possibile memorizzare dati di tipo diverso}. 
+Quindi, se volessimo passare un valore a una funzione e riutilizzarlo dopo la chiamata, dovremmo ritornare quel valore al termine della funzione, eventualmente, in aggiunta ad altri valori che la funzione calcola\footnote{Questo può essere fatto tramite il tipo \texttt{Tuple}: un array di dimensione fissa in cui è possibile memorizzare dati di tipo diverso}(vedi esempio (\ref{lst:ownership-return})). 
 
 \section{Borrowing}
-É evidente come l'ownership sia un concetto potente per la gestione della memoria, ma può risultare troppo restrittivo e macchinoso in situazioni come quella riportata nel codice (\ref{lst:ownership-return}). Rust per risolvere questo problema introduce il concetto di \textit{borrowing}, che consente di prendere in prestito un valore senza trasferirne l'ownership, consentendo una maggiore flessibilità. Un \textit{borrowing} è realizzato attraverso il concetto di \textit{riferimento} (reference). Il riferimento in Rust non ha le stesse proprietà di un riferimento in Java: 
+É evidente come l'ownership sia un concetto potente per la gestione della memoria, ma che risulta troppo restrittivo e macchinoso in situazioni come quella riportata nel codice (\ref{lst:ownership-return}). Rust per risolvere questo problema introduce il concetto di \textit{borrowing}, che consente di prendere in prestito un valore senza trasferirne l'ownership, consentendo una maggiore flessibilità. Il borrowing è realizzato attraverso il concetto di riferimento. Il riferimento in Rust non ha le stesse proprietà di un riferimento in Java: 
 \begin{itemize}
     \item In Java un riferimento è l'indirizzo di memoria di un oggetto, e può essere utilizzato per accedere e modificare l'oggetto stesso. 
     
-    Inoltre, può assumere il valore \texttt{null}, ossia non punta a un oggetto in memoria. Questo ha gravi ripercussioni sulla sicurezza del programma, poiché l'accesso a un riferimento \texttt{null} può causare un \texttt{NullPointerException} a run-time. Lo stesso creatore della nozione di riferimento \texttt{null}, Tony Hoare, lo ha definito "billion dollar mistake"\cite{hoare-null-reference}, a causa dei costi che le aziende devono, e dovranno, sostenere per bug e vulnerabilità dovuti a \texttt{null}.
+    Inoltre, può assumere il valore \texttt{null}, ossia non punta a un oggetto in memoria. Questo ha gravi ripercussioni sulla sicurezza del programma, poiché l'accesso a un riferimento \texttt{null} può causare un \texttt{NullPointerException} a run-time. 
+    
+    Lo stesso creatore della nozione di riferimento \texttt{null}, Tony Hoare, lo ha definito "billion dollar mistake"\cite{hoare-null-reference}, a causa dei costi che le aziende devono, e dovranno, sostenere per bug e vulnerabilità dovuti a \texttt{null}.
     \item In Rust, un riferimento è anch'esso l'indirizzo di memoria di un valore (mutabile o immutabile). Tuttavia, a differenza di Java, un riferimento in Rust non può essere \texttt{null}. Il compilatore di Rust garantisce che ogni riferimento punti sempre a un valore valido di un tipo specifico per tutta la durata della sua esistenza. Questo dà importanti garanzie di sicurezza, poiché elimina la possibilità di avere errori a run-time legati a riferimenti nulli.
     %TODO: inserire come rust gestisce l'assenza di valore 
 \end{itemize}
-I riferimenti in Rust sono ottenuti utilizzando l'operatore di referenziazione \texttt{\&} che, in generale, genera un riferimento alla variabile su cui viene applicato. Ad esempio:
+I riferimenti in Rust sono ottenuti utilizzando l'operatore di referenziazione \texttt{\&} che restituisce il riferimento alla variabile su cui viene applicato. Ad esempio:
 \begin{minted}[fontsize=\small]{rust}
     fn main() {
         let s1 = String::from("Hello");
@@ -251,11 +250,11 @@ In questo caso, \texttt{s1} e \texttt{s2} sono entrambi riferimenti all'oggetto 
 \end{figure} 
 Per eseguire l'operazione opposta, ossia ottenere il valore a cui punta un riferimento, si utilizza l'operatore di dereferenziazione \texttt{*}. 
 
-Abbiamo già visto come le variabili in Rust siano immutabili per definizione, ma è possibile dichiararle come mutabili utilizzando la keyword \texttt{mut}. I riferimenti in Rust hanno un comportamento simile: sono immutabili di default, ma possono essere dichiarati come mutabili utilizzando la keyword \texttt{mut}. Quindi, attraverso i riferimenti, è possibile accedere a un dato attraverso variabili diverse. Questo è utile per evitare la duplicazione di dati o per condividere dati tra diverse parti del programma. Tuttavia, quando si permette a più parti del codice di accedere allo stesso valore, è necessario garantire che non ci siano conflitti tra le operazioni di lettura e scrittura. Ad esempio:
+Abbiamo già visto come le variabili in Rust siano immutabili per definizione, ma è possibile dichiararle come mutabili utilizzando la keyword \texttt{mut}. I riferimenti in Rust hanno un comportamento simile: sono immutabili di default, ma possono essere dichiarati come mutabili utilizzando la keyword \texttt{mut}. Quindi, attraverso i riferimenti, è possibile accedere a un dato attraverso variabili diverse. Questo è utile per evitare la duplicazione di dati o per condividere dati tra diverse parti del programma. Tuttavia, quando si permette a più parti del codice di accedere allo stesso valore, è necessario garantire che non ci siano conflitti tra le operazioni di lettura e scrittura per evitare situazioni di errore come:
 \begin{itemize}
-    \item Deallocando il valore mentre un'altra parte del codice lo sta ancora utilizzando.
-    \item Modificando il valore mentre un' altra parte del codice lo sta leggendo.
-    \item Modificando il valore mentre un'altra parte del codice lo sta modificando.
+    \item Deallocando un dato mentre un'altra parte del codice lo sta ancora utilizzando.
+    \item Modificando un dato mentre un' altra parte del codice lo sta leggendo.
+    \item Modificando un dato mentre un'altra parte del codice lo sta modificando.
 \end{itemize} 
 In Java, i tre casi sopra elencati sono permessi e la responsabilità di evitare conflitti ricade sul programmatore come già visto nell'esempio (\ref{lst:java-reference}). Il problema è ancora più evidente in contesti concorrenti in cui più thread possono agire su una stessa variabile. Rust, invece, introduce un sistema di regole che impedisce questi conflitti a compile time:
 \begin{itemize}
@@ -272,9 +271,11 @@ Vediamo un esempio che mostra l'importanza di queste regole:
         println!("Il secondo elemento e': {}", r1);
     } 
 \end{minted}
-Un \texttt{vec} in Rust ha un comportamento simile a un \texttt{ArrayList} in Java, ossia è un array che cresce dinamicamente. Questo significa che quando si aggiunge un elemento, il \texttt{vec} potrebbe dover allocare nuova memoria e copiare i dati esistenti in essa. Quindi, il riferimento \texttt{r1} potrebbe non puntare più al secondo elemento del \texttt{vec} dopo l'operazione \texttt{push}. Se Rust permettesse questo codice, \texttt{r1} diventerebbe un dangling pointer, cioè un riferimento non più valido. In particolare, lo scope di \texttt{r1} termina dopo la sua stampa, quindi se non ci fosse l'istruzione di stampa non si avrebbero errori di compilazione perché lo scope di \texttt{r1} terminerebbe dopo la sua dichiarazione. Tuttavia, il compilatore impedisce questa situazione, garantendo sicurezza a tempo di compilazione.
+Un \texttt{vec} in Rust ha un comportamento simile a un \texttt{ArrayList} in Java, ossia è un array che cresce dinamicamente. Questo significa che quando si aggiunge un elemento, il \texttt{vec} potrebbe dover allocare nuova memoria e copiare i dati esistenti in essa. Quindi, il riferimento \texttt{r1} potrebbe non puntare più al secondo elemento del \texttt{vec} dopo l'operazione \texttt{push}. Se Rust permettesse questo codice, \texttt{r1} diventerebbe un dangling pointer, cioè un riferimento non più valido
+\footnote{In questo codice lo scope \texttt{r1} termina dopo la sua stampa. Se non ci fosse l'istruzione di stampa non si avrebbero errori di compilazione poiché lo scope di \texttt{r1} terminerebbe dopo la sua dichiarazione}.
+ Tuttavia, il compilatore impedisce questa situazione, garantendo sicurezza a tempo di compilazione.
 
-In Java il problema dei dangling pointer è quasi inesistente, poiché i riferimenti non possono essere invalidati in questo modo. L'unico modo di ottenere un dangling pointer in Java è quello di avere un riferimento non inizializzato o esplicitamente impostato a \texttt{null}. Il codice equivalente in Java sarebbe:
+In Java il problema dei dangling pointer è quasi inesistente, poiché i riferimenti non possono essere invalidati in questo modo. L'unico modo di ottenere un dangling pointer in Java è quello di avere un riferimento a un oggetto non inizializzato o esplicitamente impostato a \texttt{null}. Il codice equivalente in Java sarebbe:
 \begin{minted}[fontsize=\small]{Java}
     public class Main {
         public static void main(String[] args) {
@@ -285,12 +286,11 @@ In Java il problema dei dangling pointer è quasi inesistente, poiché i riferim
         }
     }
 \end{minted}
-Questo codice compila e non genera errori a run-time poiché in Java si ha un livello di indirezione in più: \text{r1} in Rust è l'indirizzo di memoria del valore "2" nel \texttt{vec}, mentre in Java è l'indirizzo di memoria dell'oggetto \texttt{Integer} che contiene il valore "2". Quindi se l'\texttt{ArrayList} venisse ridimensionato e allocato in un area di memoria diversa, ciò che viene copiato sono i riferimenti agli oggetti, non gli oggetti stessi, quindi la variabile \texttt{r1} è ancora valida perché l'oggetto che punta non ha cambiato posizione in memoria. 
-\begin{figure}
+Questo codice compila e non genera errori a run-time poiché in Java si ha un livello di indirezione in più: \text{r1} in Rust è l'indirizzo di memoria del valore "2" nel \texttt{vec}, mentre in Java è l'indirizzo di memoria dell'oggetto \texttt{Integer} che contiene il valore "2". Quindi se l'\texttt{ArrayList} venisse ridimensionato e allocato in un area di memoria diversa, ciò che viene copiato sono i riferimenti agli oggetti, non gli oggetti stessi, quindi la variabile \texttt{r1} è ancora valida perché l'oggetto a cui si riferisce non ha cambiato posizione in memoria. 
+\begin{figure}[H]
     \label{fig:bor3}
     \centering
     \includegraphics[width = \textwidth]{Figures/bor3.drawio.pdf}
     \caption{Memoria heap Java dopo il riallocamento dell'\texttt{ArrayList}.}
 \end{figure}
-%TODO Inserire grafico memoria Java
 %TODO Vedere lifetimes in Rust
