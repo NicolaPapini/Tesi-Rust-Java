@@ -11,7 +11,7 @@ Java è un linguaggio di programmazione progettato per essere semplice, portabil
 
 \begin{enumerate}
 \item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono creati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
-\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak o dangling pointer. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
+\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak o dangling pointer \footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
 \item La prevenzione di comportamenti indefiniti a run-time, attraverso un controllo rigoroso dell'accesso alla memoria a runtime: ad esempio, accessi a riferimenti \texttt{null} generano eccezioni gestibili da parte dello sviluppatore. 
 \end{enumerate}
 
@@ -303,7 +303,7 @@ Abbiamo già visto come le variabili in Rust siano immutabili per definizione, m
 In Java, i tre casi sopra elencati sono permessi e la responsabilità di evitare conflitti ricade sul programmatore come già visto nell'esempio \ref{lst:java-reference}. Il problema è ancora più evidente in contesti concorrenti in cui più thread possono agire su una stessa variabile. Rust, invece, introduce un sistema di regole che impedisce questi conflitti a compile time:
 \begin{itemize}
     \item Se si ha un riferimento mutabile a un valore, allora quello sarà l'unica variabile che può accedere a quel valore. Questo impedisce che una parte di codice modifichi un valore mentre un'altra parte lo sta leggendo o modificando. Se non ci sono riferimenti mutabili, allora non ci sono restrizioni sul numero di riferimenti immutabili che possono esistere contemporaneamente. 
-    \item Lo scope dei riferimenti Rust inizia quando il riferimento viene creato e termina l'ultima volta che il riferimento viene utilizzato. 
+    \item Lo scope dei riferimenti Rust inizia quando il riferimento viene creato e termina l'ultima volta che il riferimento viene utilizzato. In particolare, i riferimenti Rust non sono proprietari della variabile a cui si riferiscono, quindi quando escono dallo scope la variabile non viene deallocata.
 \end{itemize}
 Vediamo un esempio che mostra l'importanza di queste regole:
 \begin{minted}[fontsize=\small]{rust}
@@ -339,4 +339,121 @@ Questo codice compila e non genera errori a run-time poiché in Java si ha un li
     \caption{Memoria heap Java dopo il riallocamento dell'\texttt{ArrayList}.}
     \label{fig:bor3}
 \end{figure}
-%TODO Vedere lifetimes in Rust
+\section{L'assenza di valore in Rust e Java}
+In Java, il valore \texttt{null} è un concetto fondamentale che rappresenta l'assenza di un valore o un riferimento non inizializzato. Ogni riferimento a un oggetto in Java può essere impostato a \texttt{null}, indicando che non punta a nessun oggetto valido. Questo approccio, sebbene flessibile, introduce una serie di problemi: 
+\begin{itemize}
+    \item \texttt{NullPointerException}: l'accesso a un metodo o a un campo di un riferimento \texttt{null} genera un'eccezione a run-time, interrompendo l'esecuzione del programma. 
+    \item Ambiguità: non è chiaro se un riferimento \texttt{null} indica un errore, un valore mancante o semplicemente che l'oggetto non è stato ancora inizializzato. Inoltre, può non essere ovvio se un metodo può ritornare \texttt{null} o meno, richiedendo, quindi, documentazione aggiuntiva per chiarire il comportamento atteso.
+    \item Errori a run-time: problemi legati a \texttt{null} vengono rilevati solo a run-time, non durante la compilazione. 
+\end{itemize}
+Java cerca di mitigare questi problemi introducendo, a partire da Java 8, \texttt{Optional<T>}, un wrapper che può contenere un oggetto di tipo \texttt{T} o essere vuoto. Tramite \texttt{Optional<T>}, è possibile evitare il rischio di \texttt{NullPointerException} e rendere esplicito il fatto che un valore potrebbe non essere presente. È importante notare che, nonostante l'introduzione di \texttt{Optional<T>} e la sua crescente adozione, il problema di \texttt{null} non è completamente risolto:
+\begin{itemize}
+    \item \texttt{Optional<T>} non è un sostituto diretto di \texttt{null}, ma piuttosto un modo per rappresentare l'assenza di un valore in modo più sicuro. Tuttavia, codice legacy e librerie esistenti continuano a utilizzare \texttt{null}, creando un sistema duale in cui entrambi i concetti coesistono.
+    \item Il compilatore Java non forza l'utilizzo di \texttt{Optional<T>} al posto di \texttt{null}. Java mette a disposizione il costrutto ma non lo impone, lasciando la scelta al programmatore, che può essere più incline a utilizzare \texttt{null} per semplicità.
+    \item Anche utilizzando \texttt{Optional<T>}, è possibile incorrere in errori se non si gestisce correttamente, o, ancora peggio, non si gestisce affatto, il caso in cui l'oggetto è vuoto. Ad esempio, chiamare \texttt{get()} su un \texttt{Optional<T>} vuoto solleverà un'eccezione a run-time. 
+\end{itemize}
+Rust, invece, elimina completamente la possibilità di utilizzare \texttt{null}, andando a risolvere molti dei problemi sopra elencati. Tuttavia, il concetto rappresentato da \texttt{null} è sempre utile. Per questo Rust rappresenta l'assenza di valore con un approccio simile a \texttt{Optional<T>} di Java, ossia tramite il tipo \texttt{Option<T>}, definito nella libreria standard come:
+\begin{minted}[fontsize=\small]{rust}
+    enum Option<T> {
+        Some(T), // Contiene un valore di tipo T
+        None,    // Non contiene alcun valore
+    }
+\end{minted}
+L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire un modo per rappresentare l'assenza di un valore in modo sicuro e senza ambiguità.
+
+\texttt{Option<T>} è un \texttt{enum} e \texttt{Some(T)} \footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java sta nel fatto che in Rust una variabile non può avere valore \texttt{null}. Per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Ad esempio, utilizzando la classe \texttt{Person} del listato \ref{lst:java-reference}, definiamo il seguente esempio \footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.}: 
+\begin{listing}[h]
+    \begin{minted}[fontsize=\small]{java}
+    public class PersonRepository{
+        private List<Person> people = new ArrayList<>();
+
+        public Person findPersonByName(String name) {
+            Objects.requireNonNull(name, "Il nome non può essere null");
+            for (Person person : people) {
+                if (person.getName().equals(name)) {
+                    return person; // Ritorna la persona trovata
+                }
+            }
+            return null; // Ritorna null se non trovata
+        }
+    }
+    \end{minted}
+    \caption{Utilizzo di \texttt{null} in Java.}
+    \label{lst:java-optional}
+\end{listing}
+
+Il comportamento  di \texttt{findPersonByName()} non risulta ovvio leggendo solo la firma del metodo e, quindi, va documentato adeguatamente. Inoltre, il chiamante deve ricordarsi di gestire il caso in cui il metodo ritorni \texttt{null}, altrimenti potrebbe incorrere in un \texttt{NullPointerException} a run-time. 
+
+In Rust, invece, l'unico modo di avere un comportamento equivalente a quello del listato \ref{lst:java-optional} è quello di utilizzare il tipo \texttt{Option<Person>}:
+\begin{minted}[fontsize=\small]{rust}
+    struct Person {
+        name: String,
+    }
+
+    struct PersonRepository {
+        people: Vec<Person>,
+    }
+
+    impl PersonRepository {
+        pub fn find_person_by_name(&self, name: &str) -> Option<&Person> {
+            for person in &self.people {
+                if person.name == name {
+                    return Some(person); 
+                }
+            }
+            None
+        }
+    }
+\end{minted}
+Da questo esempio \footnote{\texttt{impl} è un costrutto Rust che consente di implementare metodi per una \texttt{struct}.} si capisce come l'utilizzo di \texttt{Option<T>} renda esplicito il fatto che il metodo può non trovare una persona con il nome specificato. Inoltre, non è richiesto il controllo sulla stringa di input \texttt{name} per verificare se è \texttt{null}, poiché una variabile Rust non può essere \texttt{null}. Se si prova a passare \texttt{None} al metodo, il compilatore segnalerà un errore.
+
+Il codice del listato \ref{lst:java-optional} può essere rifattorizzato per avere un comportamento analogo a quello di Rust, utilizzando \texttt{Optional<Person>}:
+\begin{minted}[fontsize=\small]{java}
+    public class PersonRepository {
+        private List<Person> people = new ArrayList<>();
+
+        public Optional<Person> findPersonByName(String name) {
+            Objects.requireNonNull(name, "Il nome non può essere null");
+            return people.stream()
+                        .filter(person -> person.getName().equals(name))
+                        .findFirst(); // Restituisce Optional<Person>
+        }
+    }
+\end{minted}
+Sembrerebbe che Rust risolva il problema di \texttt{null} rimuovendolo dal linguaggio e obbligando il programmatore a utilizzare \texttt{Option<T>} per rappresentare l'assenza di valore. Tuttavia, così come in Java, la responsabilità di utilizzare correttamente \texttt{Option<T>} ricade sul programmatore. L'uso corretto di \texttt{Optional<T>} in Java e \texttt{Option<T>} in Rust implica:
+\begin{itemize}
+    \item Produrre un'alternativa valida quando il valore non è presente. 
+    \item Consumare il valore se è presente. 
+    \item Evitare l'accesso diretto non controllato al valore (ad esempio \texttt{get()} in Java o \texttt{unwrap()} in Rust), poiché ciò sarebbe diverso da accedere a un valore \texttt{null}.
+\end{itemize}
+
+\section{Lifetimes}
+Oltre ai meccanismi di ownership e borrowing, Rust introduce un altro concetto per garantire la sicurezza della memoria: i \textit{lifetimes} (durata di vita) dei riferimenti, che descrive per quanto tempo un riferimento a una dato rimane valido.
+\begin{comment}
+    Un altro meccanismo fondamentale di Rust per garantire la sicurezza della memoria è il concetto di \textit{lifetimes} (durata di vita) di un riferimento. Se non esistesse questo concetto, il compilatore non sarebbe in grado di garantire che un riferimento sia sempre valido durante il suo utilizzo. Questa è una diretta conseguenza del fatto che, una variabile, in Rust, viene automaticamente deallocata quando esce dallo scope. Infatti, il seguente codice non compila:
+    \begin{minted}[fontsize=\small]{rust}
+        fn main() {
+            let r;
+            {
+                let s = String::from("ciao");
+                r = &s;
+            } // s esce dallo scope e viene deallocato
+            // r ora punta a una variabile non più valida
+            println!("Il valore è: {}", r);
+        }
+    \end{minted}
+    Questo perché \texttt{s} esce dallo scope e viene deallocata, rendendo \texttt{r} un dangling pointer. Il compilatore di Rust non permette questo codice poiché non può garantire che \texttt{r} sia sempre valido durante il suo utilizzo. Java, invece, non permette di avere dangling pointers, poiché il garbage collector non dealloca memoria finché ci sono riferimenti attivi a un oggetto. Quindi, non si può avere un riferimento a una variabile non più valida. Il codice equivalente Java: 
+    \begin{minted}[fontsize=\small]{Java}
+        public class Main {
+            public static void main(String[] args) {
+                String r;
+                {
+                    String s = new String("ciao");
+                    r = s; // r punta a s
+                } // s esce dallo scope, ma r è ancora valido
+                System.out.println("Il valore è: " + r);
+            }
+        }
+    \end{minted}
+    è del tutto valido e non può generare a errori a run-time poiché la stringa \texttt{"ciao"} è ancora raggiungibile tramite il riferimento \texttt{r} e quindi non viene deallocata una volta che \texttt{s} esce dallo scope, come invece avviene in Rust.
+\end{comment}
