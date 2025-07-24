@@ -11,7 +11,7 @@ Java è un linguaggio di programmazione progettato per essere semplice, portabil
 
 \begin{enumerate}
 \item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono creati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
-\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak o dangling pointer \footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
+\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak o dangling pointer\footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
 \item La prevenzione di comportamenti indefiniti a run-time, attraverso un controllo rigoroso dell'accesso alla memoria a runtime: ad esempio, accessi a riferimenti \texttt{null} generano eccezioni gestibili da parte dello sviluppatore. 
 \end{enumerate}
 
@@ -194,7 +194,7 @@ Nel listato \ref{lst:java-reference}, la modifica del campo \texttt{name} di \te
 --- Cay S. Horstmann \cite{horstmann-java-impatient}
 \end{flushright}
 
-È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica ai tipi di dati che allocano memoria sull'heap, come \texttt{String} o \texttt{Vec}. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'ownership, e quindi l'invalidazione del valore originale. Tuttavia, per tipi primitivi e a dimensione fissa, nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}, etc.), Rust applica una semantica diversa: questi tipi implementano automaticamente il \texttt{trait} \footnote{Un trait definisce un insieme di metodi che un tipo può implementare. È simile a un'interfaccia Java: stabilisce un contratto che i tipi devono rispettare} \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'ownership non viene trasferita.
+È importante sottolineare che la semantica del \textit{move} in Rust, così come descritta finora, si applica ai tipi di dati che allocano memoria sull'heap, come \texttt{String} o \texttt{Vec}. In questi casi, un'assegnazione o il passaggio a una funzione comporta il trasferimento dell'ownership, e quindi l'invalidazione del valore originale. Tuttavia, per tipi primitivi e a dimensione fissa, nota a compile time, come gli interi (\texttt{i32}, \texttt{u64}, etc.), Rust applica una semantica diversa: questi tipi implementano automaticamente il \texttt{trait}\footnote{Un trait definisce un insieme di metodi che un tipo può implementare. È simile a un'interfaccia Java: stabilisce un contratto che i tipi devono rispettare} \texttt{Copy}. Ciò significa che, in fase di assegnazione o di passaggio come parametro a una funzione, viene eseguita una copia bit a bit del valore, e l'ownership non viene trasferita.
 
 Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e utilizzabili, senza causare errori di compilazione. Ecco un esempio:
 \begin{minted}[fontsize=\small]{rust}
@@ -211,7 +211,7 @@ Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e util
 Questa distinzione riflette chiaramente la filosofia di Rust nel garantire la sicurezza nell'accesso alla memoria:
 \begin{itemize}
     \item Per i tipi che contengono dati allocati dinamicamente o che possono essere modificati a runtime, Rust usa la semantica del \textit{move}, che impedisce di accedere a un valore dopo che la sua \textit{ownership} è stata trasferita altrove, evitando così potenziali problemi di accesso concorrente e modifiche inattese.
-    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack, solitamente immutabili per definizione (come interi o booleani) \footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.}, Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
+    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack, solitamente immutabili per definizione (come interi o booleani)\footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.}, Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
 \end{itemize}
 L'ownership può essere trasferita anche con le funzioni che ritornano un valore. In questo caso, un assegnamento a una variabile di un valore restituito da una funzione comporta il trasferimento dell'ownership dalla funzione alla variabile. Ad esempio:
 \begin{minted}[fontsize=\small]{rust}
@@ -317,8 +317,7 @@ Vediamo un esempio che mostra l'importanza di queste regole:
         println!("Il secondo elemento e': {}", r1);
     } 
 \end{minted}
-Un \texttt{vec} in Rust ha un comportamento simile a un \texttt{ArrayList} in Java, ossia è un array che cresce dinamicamente. Questo significa che quando si aggiunge un elemento, il \texttt{vec} potrebbe dover allocare nuova memoria e copiare i dati esistenti in essa. Quindi, il riferimento \texttt{r1} potrebbe non puntare più al secondo elemento del \texttt{vec} dopo l'operazione \texttt{push}. Se Rust permettesse questo codice, \texttt{r1} diventerebbe un dangling pointer, cioè un riferimento non più valido
-\footnote{In questo codice lo scope \texttt{r1} termina dopo la sua stampa. Se non ci fosse l'istruzione di stampa non si avrebbero errori di compilazione poiché lo scope di \texttt{r1} terminerebbe dopo la sua dichiarazione}.
+Un \texttt{vec} in Rust ha un comportamento simile a un \texttt{ArrayList} in Java, ossia è un array che cresce dinamicamente. Questo significa che quando si aggiunge un elemento, il \texttt{vec} potrebbe dover allocare nuova memoria e copiare i dati esistenti in essa. Quindi, il riferimento \texttt{r1} potrebbe non puntare più al secondo elemento del \texttt{vec} dopo l'operazione \texttt{push}. Se Rust permettesse questo codice, \texttt{r1} diventerebbe un dangling pointer, cioè un riferimento non più valido\footnote{In questo codice lo scope \texttt{r1} termina dopo la sua stampa. Se non ci fosse l'istruzione di stampa non si avrebbero errori di compilazione poiché lo scope di \texttt{r1} terminerebbe dopo la sua dichiarazione}.
  Tuttavia, il compilatore impedisce questa situazione, garantendo sicurezza a tempo di compilazione.
 
 In Java il problema dei dangling pointer è quasi inesistente, poiché i riferimenti non possono essere invalidati in questo modo. L'unico modo di ottenere un dangling pointer in Java è quello di avere un riferimento a un oggetto non inizializzato o esplicitamente impostato a \texttt{null}. Il codice equivalente in Java sarebbe:
@@ -349,19 +348,19 @@ In Java, il valore \texttt{null} è un concetto fondamentale che rappresenta l'a
 Java cerca di mitigare questi problemi introducendo, a partire da Java 8, \texttt{Optional<T>}, un wrapper che può contenere un oggetto di tipo \texttt{T} o essere vuoto. Tramite \texttt{Optional<T>}, è possibile evitare il rischio di \texttt{NullPointerException} e rendere esplicito il fatto che un valore potrebbe non essere presente. È importante notare che, nonostante l'introduzione di \texttt{Optional<T>} e la sua crescente adozione, il problema di \texttt{null} non è completamente risolto:
 \begin{itemize}
     \item \texttt{Optional<T>} non è un sostituto diretto di \texttt{null}, ma piuttosto un modo per rappresentare l'assenza di un valore in modo più sicuro. Tuttavia, codice legacy e librerie esistenti continuano a utilizzare \texttt{null}, creando un sistema duale in cui entrambi i concetti coesistono.
-    \item Il compilatore Java non forza l'utilizzo di \texttt{Optional<T>} al posto di \texttt{null}. Java mette a disposizione il costrutto ma non lo impone, lasciando la scelta al programmatore, che può essere più incline a utilizzare \texttt{null} per semplicità.
-    \item Anche utilizzando \texttt{Optional<T>}, è possibile incorrere in errori se non si gestisce correttamente, o, ancora peggio, non si gestisce affatto, il caso in cui l'oggetto è vuoto. Ad esempio, chiamare \texttt{get()} su un \texttt{Optional<T>} vuoto solleverà un'eccezione a run-time. 
+    \item Il compilatore Java non impone l'utilizzo di \texttt{Optional<T>} al posto di \texttt{null}. Java mette a disposizione il costrutto ma non lo impone, lasciando la scelta al programmatore, che può essere più incline a utilizzare \texttt{null} per semplicità.
+    \item Anche utilizzando \texttt{Optional<T>}, è possibile incorrere in errori se non si gestisce correttamente, o, ancora peggio, non si gestisce affatto il caso in cui l'oggetto è vuoto. Ad esempio, chiamare \texttt{get()} su un \texttt{Optional<T>} vuoto solleverà un'eccezione a run-time. 
 \end{itemize}
-Rust, invece, elimina completamente la possibilità di utilizzare \texttt{null}, andando a risolvere molti dei problemi sopra elencati. Tuttavia, il concetto rappresentato da \texttt{null} è sempre utile. Per questo Rust rappresenta l'assenza di valore con un approccio simile a \texttt{Optional<T>} di Java, ossia tramite il tipo \texttt{Option<T>}, definito nella libreria standard come:
+Rust, invece, elimina del tutto l'uso \texttt{null}, prevenendo molti dei problemi sopra elencati. Tuttavia, il concetto rappresentato da \texttt{null} è sempre utile. Per questo motivo, Rust adotta un approccio simile a \texttt{Optional<T>} di Java tramite il tipo \texttt{Option<T>}, definito nella libreria standard come:
 \begin{minted}[fontsize=\small]{rust}
     enum Option<T> {
         Some(T), // Contiene un valore di tipo T
         None,    // Non contiene alcun valore
     }
 \end{minted}
-L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire un modo per rappresentare l'assenza di un valore in modo sicuro e senza ambiguità.
+L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire una rappresentazione sicura e non ambigua dell'assenza di un valore.
 
-\texttt{Option<T>} è un \texttt{enum} e \texttt{Some(T)} \footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java sta nel fatto che in Rust una variabile non può avere valore \texttt{null}. Per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Ad esempio, utilizzando la classe \texttt{Person} del listato \ref{lst:java-reference}, definiamo il seguente esempio \footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.}: 
+\texttt{Option<T>} è un \texttt{enum} dove \texttt{Some(T)}\footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java è che, poiché in Rust una variabile non può mai assumere il valore \texttt{null},per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Utilizzando la classe \texttt{Person}\footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.} del listato \ref{lst:java-reference}, consideriamo il seguente esempio per mostrare l'importanza di \texttt{Option<T>} in Rust: 
 \begin{listing}[h]
     \begin{minted}[fontsize=\small]{java}
     public class PersonRepository{
@@ -382,7 +381,7 @@ L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T
     \label{lst:java-optional}
 \end{listing}
 
-Il comportamento  di \texttt{findPersonByName()} non risulta ovvio leggendo solo la firma del metodo e, quindi, va documentato adeguatamente. Inoltre, il chiamante deve ricordarsi di gestire il caso in cui il metodo ritorni \texttt{null}, altrimenti potrebbe incorrere in un \texttt{NullPointerException} a run-time. 
+Il comportamento di \texttt{findPersonByName()} non risulta ovvio leggendo solo la firma del metodo e, quindi, va documentato adeguatamente. Inoltre, il chiamante deve ricordarsi di gestire il caso in cui il metodo ritorni \texttt{null}, altrimenti potrebbe incorrere in un \texttt{NullPointerException} a run-time. 
 
 In Rust, invece, l'unico modo di avere un comportamento equivalente a quello del listato \ref{lst:java-optional} è quello di utilizzare il tipo \texttt{Option<Person>}:
 \begin{minted}[fontsize=\small]{rust}
@@ -405,7 +404,7 @@ In Rust, invece, l'unico modo di avere un comportamento equivalente a quello del
         }
     }
 \end{minted}
-Da questo esempio \footnote{\texttt{impl} è un costrutto Rust che consente di implementare metodi per una \texttt{struct}.} si capisce come l'utilizzo di \texttt{Option<T>} renda esplicito il fatto che il metodo può non trovare una persona con il nome specificato. Inoltre, non è richiesto il controllo sulla stringa di input \texttt{name} per verificare se è \texttt{null}, poiché una variabile Rust non può essere \texttt{null}. Se si prova a passare \texttt{None} al metodo, il compilatore segnalerà un errore.
+Da questo esempio\footnote{\texttt{impl} è un costrutto Rust che consente di implementare metodi per una \texttt{struct}.} si capisce come l'utilizzo di \texttt{Option<T>} renda esplicito il fatto che il metodo può non trovare una persona con il nome specificato. Inoltre, non è necessario verificare se la stringa di input \texttt{name} è \texttt{null}, poiché una variabile Rust non può essere \texttt{null}. Se si prova a passare \texttt{None} al metodo, il compilatore segnalerà un errore.
 
 Il codice del listato \ref{lst:java-optional} può essere rifattorizzato per avere un comportamento analogo a quello di Rust, utilizzando \texttt{Optional<Person>}:
 \begin{minted}[fontsize=\small]{java}
@@ -420,11 +419,11 @@ Il codice del listato \ref{lst:java-optional} può essere rifattorizzato per ave
         }
     }
 \end{minted}
-Sembrerebbe che Rust risolva il problema di \texttt{null} rimuovendolo dal linguaggio e obbligando il programmatore a utilizzare \texttt{Option<T>} per rappresentare l'assenza di valore. Tuttavia, così come in Java, la responsabilità di utilizzare correttamente \texttt{Option<T>} ricade sul programmatore. L'uso corretto di \texttt{Optional<T>} in Java e \texttt{Option<T>} in Rust implica:
+Nonostante l'approccio di Rust risolva molti dei problemi legati a \texttt{null}, la responsabilità di utilizzare correttamente \texttt{Option<T>} ricade ancora sul programmatore. In Rust, come in Java, è necessario:
 \begin{itemize}
     \item Produrre un'alternativa valida quando il valore non è presente. 
     \item Consumare il valore se è presente. 
-    \item Evitare l'accesso diretto non controllato al valore (ad esempio \texttt{get()} in Java o \texttt{unwrap()} in Rust), poiché ciò sarebbe diverso da accedere a un valore \texttt{null}.
+    \item Evitare l'accesso diretto  e non controllato al valore (ad esempio \texttt{get()} in Java o \texttt{unwrap()} in Rust), poiché ciò sarebbe diverso da accedere a un valore \texttt{null}.
 \end{itemize}
 
 \section{Lifetimes}
