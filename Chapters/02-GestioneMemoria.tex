@@ -11,7 +11,7 @@ Java è un linguaggio di programmazione progettato per essere semplice, portabil
 
 \begin{enumerate}
 \item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono creati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
-\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak o dangling pointer\footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
+\item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak e dangling pointer\footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
 \item La prevenzione di comportamenti indefiniti a run-time, attraverso un controllo rigoroso dell'accesso alla memoria a runtime: ad esempio, accessi a riferimenti \texttt{null} generano eccezioni gestibili da parte dello sviluppatore. 
 \end{enumerate}
 
@@ -36,7 +36,7 @@ Tuttavia, l'approccio automatico della gestione della memoria porta alcuni svant
     }
     \end{minted}
     In questo caso, una volta che il metodo \texttt{populateList()} termina la sua esecuzione, la memoria occupata da \texttt{list} non viene liberata, poiché è un campo \texttt{static}. Questo non si verifichrebbe se \texttt{list} fosse una variabile d'istanza, poiché la memoria da essa occupata verrebbe liberata quando l'istanza della classe viene raccolta dal garbage collector.
-    \item Memory leak causati da risorse non chiuse correttamente. In Java, oggetti che si riferiscono a risorse di sistema, come file o connessioni di rete, devono essere chiuse esplicitamente per liberare la memoria e le risorse associate. In caso contrario, possono causare memory leak. Ad esempio:
+    \item Memory leak causati da risorse non chiuse correttamente. In Java, oggetti che si riferiscono a risorse di sistema, come file o connessioni di rete, devono essere chiusi esplicitamente per liberare la memoria e le risorse associate. In caso contrario, possono causare memory leak. Ad esempio:
     \begin{minted}[fontsize=\small]{Java}
     public class MemoryLeakExample {
         public static void main(String[] args) {
@@ -131,7 +131,7 @@ In questo caso, l'ownership della stringa \texttt{"Hello"} viene trasferita da \
 
 In Rust, per variabili il cui valore è contenuto in memoria heap, un'istruzione di copia esegue una \textit{shallow copy} del valore e invalida la variabile originale. Questo comportamento prende il nome di \textit{move}. L'operazione di move è a tutti gli effetti come un trasferimento di proprietà legale, dove il vecchio proprietario non può più accedere alla proprietà venduta. Rust non esegue mai una \textit{deep copy} di una variabile: se il programmatore desidera duplicare effettivamente il contenuto, deve farlo in modo esplicito (ad esempio usando il metodo \texttt{clone()}). Quindi, l'operazione di copia base è poco costosa in termini di performance.
 
-Questo non è consistente con quello che accade in Java, dove l'assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendone lo stato. In Java, il codice equivalente sarebbe:
+Questo non è consistente con quello che accade in Java, dove l' assegnazione di un oggetto a un'altra variabile non invalida quella originale, ma crea una nuova referenza all'oggetto esistente. Entrambe le variabili possono accedere all'oggetto, condividendone lo stato. In Java, il codice equivalente sarebbe:
 \begin{minted} [fontsize=\small] {Java}
     String s1 = "Hello";
     String s2 = s1; 
@@ -297,10 +297,9 @@ Per eseguire l'operazione opposta, ossia ottenere il valore a cui punta un rifer
 Abbiamo già visto come le variabili in Rust siano immutabili per definizione, ma è possibile dichiararle come mutabili utilizzando la keyword \texttt{mut}. I riferimenti in Rust hanno un comportamento simile: sono immutabili di default, ma possono essere dichiarati come mutabili utilizzando la keyword \texttt{mut}. Quindi, attraverso i riferimenti, è possibile accedere a un dato attraverso variabili diverse. Questo è utile per evitare la duplicazione di dati o per condividere dati tra diverse parti del programma. Tuttavia, quando si permette a più parti del codice di accedere allo stesso valore, è necessario garantire che non ci siano conflitti tra le operazioni di lettura e scrittura per evitare situazioni di errore come:
 \begin{itemize}
     \item Deallocazione di un dato mentre un'altra parte del codice lo sta ancora utilizzando.
-    \item Modificazione di un dato mentre un' altra parte del codice lo sta leggendo.
-    \item Modificazione di un dato mentre un'altra parte del codice lo sta modificando.
+    \item Modificazione di un dato mentre un'altra parte del codice lo sta leggendo o modificando.
 \end{itemize} 
-In Java, i tre casi sopra elencati sono permessi e la responsabilità di evitare conflitti ricade sul programmatore come già visto nell'esempio \ref{lst:java-reference}. Il problema è ancora più evidente in contesti concorrenti in cui più thread possono agire su una stessa variabile. Rust, invece, introduce un sistema di regole che impedisce questi conflitti a compile time:
+In Java, i due casi sopra elencati sono permessi e la responsabilità di evitare conflitti ricade sul programmatore come già visto nell'esempio \ref{lst:java-reference}. Il problema è ancora più evidente in contesti concorrenti in cui più thread possono agire su una stessa variabile. Rust, invece, introduce un sistema di regole che impedisce questi conflitti a compile time:
 \begin{itemize}
     \item Se si ha un riferimento mutabile a un valore, allora quello sarà l'unica variabile che può accedere a quel valore. Questo impedisce che una parte di codice modifichi un valore mentre un'altra parte lo sta leggendo o modificando. Se non ci sono riferimenti mutabili, allora non ci sono restrizioni sul numero di riferimenti immutabili che possono esistere contemporaneamente. 
     \item Lo scope dei riferimenti Rust inizia quando il riferimento viene creato e termina l'ultima volta che il riferimento viene utilizzato. In particolare, i riferimenti Rust non sono proprietari della variabile a cui si riferiscono, quindi quando escono dallo scope la variabile non viene deallocata.
@@ -339,10 +338,10 @@ Questo codice compila e non genera errori a run-time poiché in Java si ha un li
     \label{fig:bor3}
 \end{figure}
 \section{L'assenza di valore in Rust e Java}
-In Java, il valore \texttt{null} è un concetto fondamentale che rappresenta l'assenza di un valore o un riferimento non inizializzato. Ogni riferimento a un oggetto in Java può essere impostato a \texttt{null}, indicando che non punta a nessun oggetto valido. Questo approccio, sebbene flessibile, introduce una serie di problemi: 
+In Java, il valore \texttt{null} è un concetto fondamentale che rappresenta l'assenza di un valore o un riferimento non inizializzato. Ogni riferimento a un oggetto in Java può essere impostato a \texttt{null}, indicando che non punta a nessun oggetto valido. Questo approccio, sebbene flessibile e molto potente, introduce una serie di problemi: 
 \begin{itemize}
     \item \texttt{NullPointerException}: l'accesso a un metodo o a un campo di un riferimento \texttt{null} genera un'eccezione a run-time, interrompendo l'esecuzione del programma. 
-    \item Ambiguità: non è chiaro se un riferimento \texttt{null} indica un errore, un valore mancante o semplicemente che l'oggetto non è stato ancora inizializzato. Inoltre, può non essere ovvio se un metodo può ritornare \texttt{null} o meno, richiedendo, quindi, documentazione aggiuntiva per chiarire il comportamento atteso.
+    \item Ambiguità: non è chiaro se un riferimento \texttt{null} indica un errore, un valore mancante o, semplicemente, un'oggetto non  ancora inizializzato. Inoltre, può non essere ovvio se un metodo può ritornare \texttt{null} o meno, richiedendo, quindi, documentazione aggiuntiva per chiarire il comportamento atteso.
     \item Errori a run-time: problemi legati a \texttt{null} vengono rilevati solo a run-time, non durante la compilazione. 
 \end{itemize}
 Java cerca di mitigare questi problemi introducendo, a partire da Java 8, \texttt{Optional<T>}, un wrapper che può contenere un oggetto di tipo \texttt{T} o essere vuoto. Tramite \texttt{Optional<T>}, è possibile evitare il rischio di \texttt{NullPointerException} e rendere esplicito il fatto che un valore potrebbe non essere presente. È importante notare che, nonostante l'introduzione di \texttt{Optional<T>} e la sua crescente adozione, il problema di \texttt{null} non è completamente risolto:
@@ -423,36 +422,61 @@ Nonostante l'approccio di Rust risolva molti dei problemi legati a \texttt{null}
 \begin{itemize}
     \item Produrre un'alternativa valida quando il valore non è presente. 
     \item Consumare il valore se è presente. 
-    \item Evitare l'accesso diretto  e non controllato al valore (ad esempio \texttt{get()} in Java o \texttt{unwrap()} in Rust), poiché ciò sarebbe diverso da accedere a un valore \texttt{null}.
+    \item Evitare l'accesso diretto  e non controllato al valore (ad esempio \texttt{get()} in Java o, l'equivalente in Rust, \texttt{unwrap()}), poiché ciò sarebbe diverso da accedere a un valore \texttt{null}.
 \end{itemize}
-
-\section{Lifetimes}
-Oltre ai meccanismi di ownership e borrowing, Rust introduce un altro concetto per garantire la sicurezza della memoria: i \textit{lifetimes} (durata di vita) dei riferimenti, che descrive per quanto tempo un riferimento a una dato rimane valido.
 \begin{comment}
-    Un altro meccanismo fondamentale di Rust per garantire la sicurezza della memoria è il concetto di \textit{lifetimes} (durata di vita) di un riferimento. Se non esistesse questo concetto, il compilatore non sarebbe in grado di garantire che un riferimento sia sempre valido durante il suo utilizzo. Questa è una diretta conseguenza del fatto che, una variabile, in Rust, viene automaticamente deallocata quando esce dallo scope. Infatti, il seguente codice non compila:
-    \begin{minted}[fontsize=\small]{rust}
-        fn main() {
-            let r;
-            {
-                let s = String::from("ciao");
-                r = &s;
-            } // s esce dallo scope e viene deallocato
-            // r ora punta a una variabile non più valida
-            println!("Il valore è: {}", r);
-        }
-    \end{minted}
-    Questo perché \texttt{s} esce dallo scope e viene deallocata, rendendo \texttt{r} un dangling pointer. Il compilatore di Rust non permette questo codice poiché non può garantire che \texttt{r} sia sempre valido durante il suo utilizzo. Java, invece, non permette di avere dangling pointers, poiché il garbage collector non dealloca memoria finché ci sono riferimenti attivi a un oggetto. Quindi, non si può avere un riferimento a una variabile non più valida. Il codice equivalente Java: 
-    \begin{minted}[fontsize=\small]{Java}
+\section{Implementazione di una Linked List in Rust}
+Per dimostrare praticamente i concetti di gestione della memoria presentati in questo capitolo, si procede con l'implementazione di una \textit{linked list} in Rust. Questa struttura dati rappresenta un caso di studio ideale poiché coinvolge direttamente i concetti di ownership, borrowing e gestione dell'assenza di valore.
+\subsection{Definizione della struttura}
+In Rust, una \texttt{struct} è un tipo di dato che consente di raggruppare variabili, di qualsiasi tipo, correlate. Si può pensare a una \texttt{struct} come a una classe in Java, ma senza i metodi associati. Per implementare una \textit{linked list}, si definiscono due \texttt{struct}: una per il nodo della lista e una per la lista stessa.
+\begin{minted}{rust}
+    // Definizione del nodo
+    struct Node<T> {
+        value: T,
+        next: Option<Box<Node<T>>>,
+    }
+
+    // Definizione della lista
+    struct LinkedList<T> {
+        head: Option<Box<Node<T>>>,
+    }
+\end{minted}
+Si utilizza l'\texttt{enum} \texttt{Option<T>} per il campo \texttt{next} per indicare che un nodo può non avere un successivo, ossia essere l'ultimo nodo della lista. L'utilizzo del tipo \texttt{Option<Box<Node<T>>>} per il campi \texttt{next} e \texttt{head} è necessario poiché una \texttt{struct} in rust deve avere una dimensione ben definita e nota a compile time. Se si utlizzasse \texttt{Option<Node<T>>}, la dimensione del tipo \texttt{Node<T>} non sarebbe limitata superiormente, poiché potrebbe crescere in maniera arbitraria a seconda della lunghezza della lista. Invece, tramite l'utilizzo del puntatatore \texttt{Box<T>} si ottiene una dimensione fissa.
+
+
+    \section{Lifetimes}
+    In Java, il problema dei dangling pointers non si verifica in quanto il linguaggio non prevede la deallocazione esplicita della memoria. Il garbage collector provvede automaticamente a liberare la memoria occupata dagli oggetti quando non esistono più riferimenti attivi ad essi. Di conseguenza, non è possibile avere dangling pointers, poiché un oggetto viene distrutto solo quando è effettivamente non più raggiungibile.
+
+    Tuttavia, in Rust, poiché la memoria occupata da una variabile viene automaticamente deallocata una volta che esce dallo scope, può verificarsi una situazione in cui un riferimento alla variabile vive più della variabile stessa. Ad esempio:
+    \begin{listing}[H]
+        \begin{minted}[fontsize=\small]{rust}
+            fn main() {
+                let r;
+                {
+                    let s = String::from("ciao");
+                    r = &s;
+                } // s esce dallo scope e viene deallocato
+                // r ora punta a una variabile non più valida
+                println!("Il valore è: {}", r);
+            }
+        \end{minted}
+        \caption{Tentativo di creazione di un dangling pointer in Rust.}
+        \label{lst:rust-dangling-pointer}
+    \end{listing}
+    Per evitare questo problema, Rust utilizza un sistema di \textit{lifetimes} (durata di vita) dei riferimenti, che consente al compilatore di verificare che i riferimenti siano sempre validi durante il loro utilizzo. Il lifetime di un riferimento è definito come l'intervallo di tempo durante il quale il riferimento è valido e può essere utilizzato senza causare errori di accesso alla memoria. Nel listato \ref{lst:rust-dangling-pointer}, il riferimento \texttt{r} tenta di accedere alla stringa \texttt{s} dopo che quest'ultima è uscita dallo scope ed è stata deallocata. Il compilatore di Rust rileva questa situazione grazie all'analisi dei lifetimes e impedisce la compilazione del programma, evitando un potenziale accesso a memoria non valida. Di seguito, il codice equivalente al listato \ref{lst:rust-dangling-pointer} in Java:
+    \begin{minted}[fontsize=\small]{java}
         public class Main {
             public static void main(String[] args) {
                 String r;
                 {
                     String s = new String("ciao");
-                    r = s; // r punta a s
-                } // s esce dallo scope, ma r è ancora valido
+                    r = s;
+                }
                 System.out.println("Il valore è: " + r);
             }
-        }
+        }    
     \end{minted}
-    è del tutto valido e non può generare a errori a run-time poiché la stringa \texttt{"ciao"} è ancora raggiungibile tramite il riferimento \texttt{r} e quindi non viene deallocata una volta che \texttt{s} esce dallo scope, come invece avviene in Rust.
+    In questo caso, anche se la variabile \texttt{s} esce dallo scope alla fine del blocco, l'oggetto "ciao" rimane in memoria perché è ancora referenziato dalla variabile \texttt{r}. Il garbage collector non interviene finché esistono riferimenti validi. Pertanto, in Java non si verifica un accesso a memoria non valida, e il programma stampa correttamente il valore.
+
+    Nel listato \ref{lst:rust-dangling-pointer} il problema è molto semplice da risolvere: basta eliminare lo scope interno. Tuttavia, ci sono situazioni più complesse in cui non è banale determinare se un riferimento è valido o meno. 
 \end{comment}

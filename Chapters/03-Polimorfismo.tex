@@ -1,0 +1,134 @@
+% !TEX root = ../Thesis.tex
+
+\chapter{Polimorfismo}
+Il polimorfismo è un concetto fondamentale della programmazione. Derivato dal greco “molte forme”, il polimorfismo consente a entità di assumere diverse forme o comportamenti in base al contesto, permettendo di scrivere codice più flessibile, estendibile e manutenibile. Grazie al polimorfismo, è possibile utilizzare un'interfaccia comune per manipolare elementi di tipi diversi, facilitando così l'implementazione di soluzioni generiche. Il vantaggio principale del polimorfismo è il miglioramento della qualità del codice:
+\begin{itemize}
+    \item Favorisce l'astrazione, consentendo di trattare oggetti di tipi diversi in modo uniforme.
+    \item Riduce la duplicazione di codice, poiché le operazioni comuni possono essere definite una sola volta e riutilizzate per diversi tipi.
+    \item Semplifica la gestione delle estensioni future, poiché nuove funzionalità possono essere aggiunte senza modificare il codice esistente.
+\end{itemize}
+In un linguaggio come Java, orientato agli oggetti, il polimorfismo è una caratteristica centrale e largamente supportata tramite ereditarietà e interfacce. Rust, pur non essendo un linguaggio tradizionalmente orientato agli oggetti, offre un approccio alternativo al polimorfismo, basato su trait e tipi generici, che permette di ottenere astrazione e flessibilità.
+
+In questo capitolo verrà fornita una panoramica delle modalità con cui Java e Rust implementano e sfruttano il polimorfismo, mettendo a confronto le differenze concettuali e pratiche tra i due linguaggi. In particolare, verranno analizzati i meccanismi di polimorfismo dinamico e statico, evidenziando in che modo i due linguaggi implementano questi concetti.
+
+\section{Polimorfismo in Java}
+Java supporta il polimorfismo attraverso due principali meccanismi: il \textit{subtyping} (polimorfismo per inclusione) e il \textit{parametric polymorphism} (polimorfismo parametrico). 
+
+Il subtyping si basa sul fatto che ci possa essere una relazione tra tipi chiamata \textit{relazione di sottotipo}. Si dice che un tipo \textit{A} è un sottotipo di un tipo \textit{B} quando il contesto richiede un elemento di tipo \textit{B} ma può accettare un elemento di tipo \textit{A}. In Java, la relazione di sottotipo viene implementata attraverso l'ereditarietà e le interfacce. Le classi possono estendere altre classi e implementare interfacce, consentendo agli oggetti di essere trattati come istanze della loro classe base o interfaccia. 
+
+Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo.
+\section{Polimorfismo in Rust}
+In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, come in Java, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui tipi generici.
+\section{Generics: Monomorphization e Type Erasure}
+Sia Rust che Java supportano la programmazione generica, che consente di scrivere codice che può operare su tipi diversi senza dover duplicare il codice per ogni tipo specifico. La sintassi per definire i generics in Rust e Java è simile, utilizzando parentesi angolare per specificare i parametri di tipo. Tuttavia, ci sono differenze significative nella gestione dei generics tra i due linguaggi.
+
+Il compilatore Java utilizza un processo chiamato \textit{type erasure} per implementare i generics, questo include i seguenti fatti:
+\begin{itemize}
+    \item Durante la compilazione i parametri di tipo vengono sostituiti con il tipo \texttt{Object} o con un tipo specifico se è stato definito un vincolo sul parametro di tipo.
+    \item Vengono inseriti cast espliciti per mantenere la type safety.
+    \item Genera \textit{Bridge Methods} per preservare il polimorfismo dopo il processo di type erasure.
+\end{itemize}
+Ad esempio:
+\begin{minted} [fontsize=\small] {Java}
+    public class GenericClass<T> {
+        T value;
+
+        void setValue(T value) { 
+            this.value = value;
+        }
+    }
+\end{minted}
+Dopo la type erasure, il codice diventa:
+\begin{minted} [fontsize=\small] {Java}
+    public class GenericClass {
+        Object value;
+
+        void setValue(Object value) { 
+            this.value = value;
+        }
+    }
+\end{minted}
+Nel caso in cui, invece, si definisca un vincolo di tipo, ad esempio \texttt{<T extends Number>}, il compilatore Java sostituirà \texttt{T} con \texttt{Number} durante la type erasure, mantenendo la type safety:
+\begin{minted} [fontsize=\small] {Java}
+    public class GenericClass{
+        Number value;
+
+        void setValue(Number value) { 
+            this.value = value;
+        }
+    }
+\end{minted}
+Quando si combina la type erasure con l'overriding dei metodi, Java genera dei \textit{Bridge Methods} per garantire che il polimorfismo funzioni correttamente. Uno scenario tipico è il seguente:
+\begin{itemize}
+    \item Una classe generica o un'interfaccia ha un metodo che usa un tipo generico. 
+    \item Una sua sottoclasse sovrascrive quel metodo con un tipo concreto. 
+    \item Dopo la type erasure, le firme dei due metodi non corrispondono più. Questo romperebbe il polimorfismo. 
+\end{itemize}
+Ad esempio: 
+\begin{minted} [fontsize=\small] {Java}
+    class Parent<T> {
+        T getValue() { return null; }
+    }
+
+    class Child extends Parent<String> {
+        @Override
+        String getValue() {
+             return "Hello"; 
+        }
+    }
+\end{minted}
+Dopo la type erasure:
+\begin{minted} [fontsize=\small] {Java}
+    class Parent {
+        Object getValue() {
+            return null; 
+        }
+    }
+
+    class Child extends Parent {
+        String getValue() {
+            return "Hello"; 
+        }
+
+        // Bridge method generato dal compilatore:
+        // Garantisce che la chiamata a Parent.getValue() 
+        // funzioni correttamente
+        Object getValue() {
+            return getValue(); // chiama String getValue()
+        }
+    }
+\end{minted}
+In Rust, invece, i generics sono implementati tramite un processo chiamato \textit{monomorphization}. Questo è il processo tramite il cui il compilatore Rust genera codice specifico per ogni tipo concreto utilizzato con i generics. Questo significa che Rust sostituisce i parametri di tipo generici con i tipi concreti utilizzati, e genera una versione specifica della funzione o della struttura per ogni tipo. Ad esempio: 
+\begin{minted} [fontsize=\small] {Rust}
+    struct Boxed<T> {
+        value: T,
+    }
+
+    fn main() {
+        let a = Boxed { value: 123 }; // T = i32
+        let b = Boxed { value: "text" }; // T = &str
+    }
+\end{minted}
+Dopo la monomorphization, il compilatore Rust genera due versioni della struttura \texttt{Boxed}:
+\begin{minted} [fontsize=\small] {Rust}
+    struct Boxed_i32 {
+        value: i32,
+    }
+
+    struct Boxed_str {
+        value: &str,
+    }
+\end{minted}
+È facile notare come i due approcci siano molto diversi e abbiano implicazioni diverse sul modo in cui il codice viene generato e sulla performance:
+\begin{itemize}
+    \item Rispetto alla type erasure di Java, la monomorphization di Rust porta diversi vantaggi in termini di performance:
+    \begin{itemize}
+        \item Nella type erasure, poiché i parametri di tipo vengono eliminati, il compilatore spesso deve inserire cast espliciti per garantire la type safety, il che può introdurre un overhead. Questo overhead è spesso trascurabile ma comunque presente. 
+        \item I generics di Java non possono essere utilizzati con tipi primitivi, come \texttt{int} o \texttt{double}, ma solo con oggetti. Questo significa che quando si usano generics con tipi primitivi, Java deve utilizzare il boxing e l'unboxing, che introducono un ulteriore overhead.
+        \item Poiché Java usa lo stesso bytecode per tutte le istanziazioni di un generico, non può ottimizzare il codice per tipi specifici. Questo può essere rilevante per sistemi che richiedono un alto grado di performance.
+        \item Il monomorphization è un meccanismo statico che risolve i tipi al momento della compilazione, quindi non ha overhead a runtime. Invece, la type erasure può coinvolgere il dynamic dispatch di Java che può essere più costoso in termini di performance.
+    \end{itemize}
+    \item La monomorphization può portare ad un aumento della dimensione del codice del programma compilato poiché vengono generate diverse versioni della stessa funzione generica, una per ogni combinazione di tipi con cui viene chiamata. 
+    \item La monomorphization può incrementare notevolmente il tempo di compilazione del programma, specialmente se ci sono molte combinazioni di tipi concreti con cui viene chiamata una funzione generica.
+    \item La monomorphization può fornire messaggi di errore più chiari e specifici poiché ogni versione specifica della funzione generica ha tipi concreti associati.
+\end{itemize}
