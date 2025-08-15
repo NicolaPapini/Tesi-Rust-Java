@@ -139,7 +139,7 @@ Un \textit{trait} è un costrutto di Rust che consente di definire un insieme di
         fn my_method(&self) -> String;
     }
 \end{minted}
-Tramite questa dichiarazione si definisce un contratto: i tipi che implementano il trait devono implementare i metodi dichiarati nel trait. Questo avviene attraverso le keywords \texttt{impl} e \texttt{for} come segue:
+L'implementazione del trait avviene attraverso le keywords \texttt{impl} e \texttt{for} come segue:
 \begin{minted} [fontsize=\small] {Rust}
     struct MyStruct;
 
@@ -147,5 +147,32 @@ Tramite questa dichiarazione si definisce un contratto: i tipi che implementano 
         fn my_method(&self) -> () {
             println!("Hello from MyStruct");
         }
+    }
+\end{minted}
+I traits possono essere utilizzati per realizzare il bounded parametric polymorphism in Rust, consentendo di specificare vincoli sui tipi generici (\textit{trait bounds}). Ad esempio, si può definire una funzione che accetta un tipo generico che implementa un determinato trait nel seguente modo:
+\begin{minted} [fontsize=\small] {Rust}
+    fn my_function<T: MyTrait>(item: T) {
+        println!("{}", item.my_method());
+    }
+\end{minted}
+Nel caso in cui siano presenti più vincoli, questi possono essere combinati utilizzando il simbolo \texttt{+} oppure attraverso l'uso di \texttt{where}:
+\begin{minted} [fontsize=\small] {Rust}
+    fn my_function<T>(item: T)
+    where 
+        T: MyTrait + AnotherTrait 
+    {
+        println!("{}", item.my_method());
+    }   
+\end{minted}
+In Java, è possibile ottenere un comportamento simile ai trait bounds attraverso i vincoli di tipo (\textit{type bounds}) nelle dichiarazioni generiche. Ad esempio, si può definire una classe generica che accetta un tipo che estende una classe base o implementa un'interfaccia:
+\begin{minted} [fontsize=\small] {Java}
+    public class MyClass<T extends Bound> {
+        /* ... */
+    }
+\end{minted}
+In questo esempio, \texttt{T} è un tipo generico che deve implementare l'interfaccia \texttt{MyInterface}. Questo consente di utilizzare i metodi definiti nell'interfaccia \texttt{MyInterface} all'interno della classe \texttt{MyClass}. Anche in Java è possibile definire più vincoli di tipo attraverso l'utilizzo dell'operatore \texttt{\&}:
+\begin{minted} [fontsize=\small] {Java}
+    public class MyClass<T extends Bound & AnotherBound> {
+        /* ... */ 
     }
 \end{minted}
