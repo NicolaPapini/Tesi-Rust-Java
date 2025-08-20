@@ -135,7 +135,7 @@ Dopo la monomorphization, il compilatore Rust genera due versioni della struttur
 \end{itemize}
 \section{Rust Traits}
 \label{sec:rust_traits}
-Un \textit{trait} è un costrutto di Rust che consente di definire un insieme di funzionalità che un tipo deve implementare. I traits vengono utilizzati, quindi, per definire comportamenti comuni che possono essere condivisi tra diversi tipi. Un trait viene dichiarato utilizzando la keyword \texttt{trait} come segue:
+Un \textit{trait} è un costrutto di Rust che consente di definire un insieme di funzionalità che un tipo deve implementare. I traits vengono utilizzati, quindi, per definire comportamenti comuni che possono essere condivisi tra diversi tipi. Questo significa che tutti i tipi che implementano un determinato trait condividono la stessa interfaccia di quel trait. Un trait viene dichiarato utilizzando la keyword \texttt{trait} come segue:
 \begin{minted} [fontsize=\small] {Rust}
     pub trait MyTrait {
         fn my_method(&self) -> String;
@@ -180,8 +180,8 @@ In questo esempio, \texttt{T} è un tipo generico che deve implementare l'interf
 \end{minted}
 Si può facilmente notare come il concetto di trait in Rust sia molto simile alle interfacce in Java. Entrambi servono entrambi a garantire che un valore o un oggetto possa essere utilizzato secondo un certo protocollo o insieme di regole, permettendo diverse implementazioni concrete senza essere vincolati a dettagli di implementazione, a differenza di quanto accade con una superclasse Java. Tuttavia, sono presenti alcune differenze significative:
 \begin{itemize}
-    \item In Rust, un trait non è un tipo concreto, ma un insieme di metodi che un tipo può implementare. In Java, invece, un' interfaccia funge sia da contratto sia da tipo: quando una classe implementa un'interfaccia, è possibile trattare gli oggetti di quella classe come istanze del tipo dell'interfaccia stessa. La differenza principale è quindi che in Rust il trait è separato dal tipo concreto, mentre in Java l'interfaccia può essere usata direttamente come tipo del riferimento.
-    \item In Java, le interfacce richiedono che la classe che le implementa abbia metodi con nomi specifici. Questo può creare conflitti: ad esempio, due interfacce potrebbero essere impossibili da implementare insieme se hanno metodi con lo stesso nome ma tipi di ritorno diversi. Ad esempio:
+    \item In Rust, un trait non è un tipo concreto, ma un insieme di metodi che un tipo può implementare. In Java, invece, un' interfaccia funge sia da contratto sia da tipo: quando una classe implementa un'interfaccia, è possibile trattare gli oggetti di quella classe come istanze del tipo dell'interfaccia stessa. La differenza principale è, quindi, che in Rust il trait è separato dal tipo concreto, mentre in Java l'interfaccia può essere usata direttamente come tipo del riferimento.
+    \item In Java, le interfacce richiedono che la classe che le implementa abbia metodi con nomi specifici. Questo può creare conflitti: ad esempio, due interfacce potrebbero essere impossibili da implementare contemporaneamente se hanno metodi con lo stesso nome ma tipi di ritorno diversi. Ad esempio:
     \begin{minted} [fontsize=\small] {Java}
         public interface InterfaceA {
             String getValue();
@@ -246,10 +246,133 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
         }
     \end{minted}
 \end{itemize}
-\section{Static Dispatch e Dynamic Dispatch}
-Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{Dispatch}. Esistono due forme di dispatch: lo \textit{static dispatch} e il \textit{dynamic dispatch}. 
-
-Tramite lo static dispatch la decisione su quale versione specifica utilizzare viene risolta al momento della compilazione e, quindi, non c'è alcun overhead a runtime per determinare uale implementazione utilizzare. In Rust, questo avviene attraverso i \textit{generics} e i \textit{trait bounds}. Quando si utilizza un tipo generico con un trait bound, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato. Questo processo è noto come \textit{monomorphization} (descritto in dettaglio nella Sezione \ref{sec:generics}). In Java, invece, lo static dispatch si applica a:
+\section{Meccanismi di Dispatch}
+Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{Dispatch}. Esistono due forme di dispatch: 
 \begin{itemize}
-    \item \textit{Method overloading}: la versione del metodo chiamato è determinata al compile-time in base ai tipi dichiarati dei parametri.
+    \item Lo \textit{Static Dispatch}, in cui la risoluzione della chiamata viene risolta a tempo di compilazione.
+    \item Il \textit{Dynamic Dispatch}, in cui la risoluzione della chiamata avviene a run-time. 
 \end{itemize}
+%TODO Inserire un piccolo confronto pro/contro per s/d dispatch
+
+\subsection{Static Dispatch}
+In Rust, il meccanismo di static dispatch viene realizzato attraverso \textit{generics} e i \textit{trait bounds}. Quando si utilizza un tipo generico con un trait bound, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato. Questo processo è noto come \textit{monomorphization} (descritto in dettaglio nella Sezione \ref{sec:generics}). Per mostrare esplicitamente come lo static dispatch venga implementato in Rust consideriamo il seguente codice:
+\begin{minted}[fontsize=\small] {Rust}
+    trait Drivable {
+        fn drive(&self);
+    }
+
+    struct Car;
+    impl Drivable for Car {
+        #[inline(never)]
+        fn drive(&self) {
+            println!("You are driving a car.");
+        }
+    }
+
+    struct Motorcycle; 
+    impl Drivable for Motorcycle {
+        #[inline(never)]
+        fn drive(&self) {
+            println!("You are driving a motorcycle.");
+        }
+    }
+
+    struct Boat;
+    impl Drivable for Boat {
+        #[inline(never)]
+        fn drive(&self) {
+            println!("You are driving a boat");
+        }
+    }
+\end{minted}
+Definiamo la seguente funzione generica con vincolo di tipo:
+\begin{minted}[fontsize = \small]{Rust}
+    fn static_dispatch<T: Drivable>(t: T) {
+        t.drive();
+    }
+\end{minted}
+Ora, all'interno del nostro \texttt{main()} chiamiamo \texttt{static\_dispatch()} con uno dei tre tipi concreti precedentemente definiti:
+\begin{minted}[fontsize = \small]{Rust}
+    fn main() {
+        static_dispatch(Car{});
+        static_dispatch(Motorcycle{});
+        static_dispatch(Boat{});
+    }
+\end{minted}
+Durante la compilazione, tramite monomorphization, verranno create tre copie della funzione \texttt{static\_dispatch()}: una per ogni tipo con cui è stata chiamata. Questo si può vedere utilizzando i seguenti comandi\footnote{Il primo comando compila il file Rust senza ottimizzazioni e con informazioni di debug dettagliate. Questo è necessario per produrre un eseguibile "leggibile" e completo per il debug. Il secondo comando utilizza LLDB, un debugger per linguaggi come C e Rust, per disassemblare la funzione \texttt{drive} e mostrare i suoi indirizzi di memoria.} dal terminale:
+\begin{minted}[fontsize=\small]{bash}
+rustc -C opt-level=0 -C debuginfo=2 main.rs
+lldb ./main --batch -o "disassemble --name drive" > disassembly.txt
+\end{minted}
+Il comando genera un file \texttt{disassembly.txt} contenente la disassemblazione delle funzioni \texttt{drive} con i vari tipi, mostrando chiaramente che ogni funzione ha un indirizzo di memoria distinto:
+
+\begin{verbatim}
+Car::drive        -> 0x100000a2c
+Motorcycle::drive -> 0x100000a64
+Boat::drive       -> 0x100000a9c
+\end{verbatim}
+
+Questo evidenzia come lo static dispatch risolva la chiamata alla funzione al momento della compilazione, senza alcun overhead a runtime. 
+
+In Java, lo \textit{static dispatch} è realizzato tramite il \textit{method overloading}. In questo meccanismo, più metodi condividono lo stesso nome ma differiscono per la lista dei parametri (numero o tipo). La scelta del metodo corretto viene risolta dal compilatore in base ai tipi statici degli argomenti.
+
+Consideriamo il seguente esempio:
+
+\begin{minted}[fontsize=\small]{java}
+public class StaticDispatch {
+		
+    public double sum(int op1, int op2) {
+        return op1 + op2;
+    }
+	
+    public double sum(double op1, double op2) {
+        return op1 + op2;
+    }
+	
+    public static void main(String[] args) {
+        double x = new StaticDispatch().sum(1, 1);
+        double y = new StaticDispatch().sum(1.0, 1.0);
+    }
+}
+\end{minted}
+
+In questo caso, abbiamo due metodi omonimi \texttt{sum}, rispettivamente con parametri di tipo \texttt{int} e \texttt{double}. Durante la compilazione, la chiamata \texttt{sum(1, 1)} viene risolta come invocazione del metodo \texttt{sum(int, int)}, mentre la chiamata \texttt{sum(1.0, 1.0)} come invocazione del metodo \texttt{sum(double, double)}.  
+
+Per osservare cosa accade a livello di bytecode, compiliamo ed utilizziamo il comando:
+
+\begin{minted}[fontsize=\small]{bash}
+    javac .\StaticDispatch.java
+    javap -c .\StaticDispatch.class
+\end{minted}
+
+L'output relativo al metodo \texttt{main} è il seguente (semplificato):
+\begin{verbatim}
+  public static void main(int[]);
+    Code:
+       0: new           #7    
+       3: dup
+       4: invokespecial #9    // Method "<init>":()V
+       7: iconst_1
+       8: iconst_1
+       9: invokevirtual #10   // Method sum:(II)D
+      12: dstore_1
+      13: new           #7    
+      16: dup
+      17: invokespecial #9    // Method "<init>":()V
+      20: dconst_1
+      21: dconst_1
+      22: invokevirtual #14   // Method sum:(DD)D
+      25: dstore_3
+      26: return
+\end{verbatim}
+
+Possiamo notare che:
+\begin{itemize}
+    \item Alla riga 9, \texttt{invokevirtual \#10} corrisponde a \texttt{sum:(II)D}, ovvero il metodo con parametri \texttt{int}.
+    \item Alla riga 22, \texttt{invokevirtual \#14} corrisponde a \texttt{sum:(DD)D}, ovvero il metodo con parametri \texttt{double}.
+\end{itemize}
+
+Queste informazioni provengono dal \textit{constant pool} \footnote{La constant pool contiene le costanti necessarie per l'esecuzione del codice di una specifica classe. In pratica, è una struttura dati a runtime simile a una tabella dei simboli. Si tratta di una rappresentazione a runtime per ogni classe o interfaccia all'interno di un file \texttt{.class} in Java} del bytecode, dove il compilatore ha già registrato a quale firma di metodo corrisponde ciascuna chiamata. In altre parole, nonostante entrambe le invocazioni utilizzino l'istruzione \texttt{invokevirtual}, a runtime la JVM non ha bisogno di fare alcuna ricerca aggiuntiva: la firma è già stata scelta a compile-time in maniera univoca.
+
+Sebbene in entrambi i linguaggi si parli di \textit{static dispatch}, i meccanismi adottati sono profondamente diversi.In Rust, lo static dispatch si traduce in specializzazione del codice (funzioni distinte generate dal compilatore). In Java, invece, lo static dispatch si traduce in selezione della firma corretta (una voce distinta nel constant pool per ogni metodo). In entrambi i casi, la risoluzione avviene a compile-time e non vi è alcun overhead di dispatch a runtime. 
+\subsection{Dynamic Dispatch}
