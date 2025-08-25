@@ -27,7 +27,7 @@ Il compilatore Java utilizza un processo chiamato \textit{type erasure} per impl
 \begin{itemize}
     \item Durante la compilazione i parametri di tipo vengono sostituiti con il tipo \texttt{Object} o con un tipo specifico se è stato definito un vincolo sul parametro di tipo.
     \item Vengono inseriti cast espliciti per mantenere la type safety.
-    \item Genera \textit{Bridge Methods} per preservare il polimorfismo dopo il processo di type erasure.
+    \item Generazione di \textit{Bridge Methods} per preservare il polimorfismo dopo il processo di type erasure.
 \end{itemize}
 Ad esempio:
 \begin{minted} [fontsize=\small] {Java}
@@ -133,7 +133,7 @@ Dopo la monomorphization, il compilatore Rust genera due versioni della struttur
     \item La monomorphization può incrementare notevolmente il tempo di compilazione del programma, specialmente se ci sono molte combinazioni di tipi concreti con cui viene chiamata una funzione generica.
     \item La monomorphization può fornire messaggi di errore più chiari e specifici poiché ogni versione specifica della funzione generica ha tipi concreti associati.
 \end{itemize}
-\section{Rust Traits}
+\section{Traits}
 \label{sec:rust_traits}
 Un \textit{trait} è un costrutto di Rust che consente di definire un insieme di funzionalità che un tipo deve implementare. I traits vengono utilizzati, quindi, per definire comportamenti comuni che possono essere condivisi tra diversi tipi. Questo significa che tutti i tipi che implementano un determinato trait condividono la stessa interfaccia di quel trait. Un trait viene dichiarato utilizzando la keyword \texttt{trait} come segue:
 \begin{minted} [fontsize=\small] {Rust}
@@ -247,7 +247,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
     \end{minted}
 \end{itemize}
 \section{Meccanismi di Dispatch}
-Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{Dispatch}. Esistono due forme di dispatch: 
+Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{dispatch}. Esistono due forme di dispatch: 
 \begin{itemize}
     \item Lo \textit{Static Dispatch}, in cui la risoluzione della chiamata viene risolta a tempo di compilazione.
     \item Il \textit{Dynamic Dispatch}, in cui la risoluzione della chiamata avviene a run-time. 
@@ -342,10 +342,10 @@ Per osservare cosa accade a livello di bytecode, compiliamo ed utilizziamo il co
 
 \begin{minted}[fontsize=\small]{bash}
     javac .\StaticDispatch.java
-    javap -c .\StaticDispatch.class
+    javap -c .\StaticDispatch.class > bytecode.txt
 \end{minted}
 
-L'output relativo al metodo \texttt{main} è il seguente (semplificato):
+L'output (semplificato) scritto sul file \texttt{bytecode.txt} è il seguente:
 \begin{verbatim}
   public static void main(int[]);
     Code:
@@ -372,7 +372,55 @@ Possiamo notare che:
     \item Alla riga 22, \texttt{invokevirtual \#14} corrisponde a \texttt{sum:(DD)D}, ovvero il metodo con parametri \texttt{double}.
 \end{itemize}
 
-Queste informazioni provengono dal \textit{constant pool} \footnote{La constant pool contiene le costanti necessarie per l'esecuzione del codice di una specifica classe. In pratica, è una struttura dati a runtime simile a una tabella dei simboli. Si tratta di una rappresentazione a runtime per ogni classe o interfaccia all'interno di un file \texttt{.class} in Java} del bytecode, dove il compilatore ha già registrato a quale firma di metodo corrisponde ciascuna chiamata. In altre parole, nonostante entrambe le invocazioni utilizzino l'istruzione \texttt{invokevirtual}, a runtime la JVM non ha bisogno di fare alcuna ricerca aggiuntiva: la firma è già stata scelta a compile-time in maniera univoca.
+Queste informazioni provengono dal \textit{constant pool} \footnote{La constant pool contiene le costanti necessarie per l'esecuzione del codice di una specifica classe. In pratica, è una struttura dati a runtime simile a una tabella dei simboli.} del bytecode, dove il compilatore ha già registrato a quale firma di metodo corrisponde ciascuna chiamata. In altre parole, nonostante entrambe le invocazioni utilizzino l'istruzione \texttt{invokevirtual}, a runtime la JVM non ha bisogno di fare alcuna ricerca aggiuntiva: la firma è già stata scelta a compile-time in maniera univoca.
 
 Sebbene in entrambi i linguaggi si parli di \textit{static dispatch}, i meccanismi adottati sono profondamente diversi.In Rust, lo static dispatch si traduce in specializzazione del codice (funzioni distinte generate dal compilatore). In Java, invece, lo static dispatch si traduce in selezione della firma corretta (una voce distinta nel constant pool per ogni metodo). In entrambi i casi, la risoluzione avviene a compile-time e non vi è alcun overhead di dispatch a runtime. 
 \subsection{Dynamic Dispatch}
+Il meccanismo di generics e trait bounds appena descritto è adatto solamente quando si lavora con tipi omogenei di cui si conosce  il tipo esatto a compile-time. Tuttavia, quando si desidera lavorare con tipi eterogenei o quando il tipo esatto non è noto fino a runtime, è necessario utilizzare il \textit{dynamic dispatch}. 
+
+Il dynamic dispatch in Rust viene realizzato attraverso l'uso di \textit{trait objects}. Un trait object è un puntatore a un tipo che implementa un determinato trait, consentendo di chiamare metodi definiti nel trait senza conoscere il tipo concreto a compile-time. Un trait object si definisce con la sintassi \texttt{Box<dyn Trait>}\footnote{Al posto di \texttt{Box<>} si può utilizzare qualsiasi altro tipo di puntatatore. Questo è richiesto perché il compilatore di Rust deve sapere a compile time la dimensione della variabile.}, dove \texttt{Trait} è il trait che si desidera utilizzare. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione dei \texttt{Observer} i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
+\begin{minted}[fontsize=\small]{Rust}
+    trait Observer {
+        fn update(&self, data: &str);
+    }
+
+    struct ConcreteObserverA;
+
+    impl Observer for ConcreteObserverA {
+        fn update(&self, data: &str) {
+            println!("ConcreteObserverA received: {}", data);
+        }
+    }
+
+    struct ConcreteObserverB;
+
+    impl Observer for ConcreteObserverB {
+        fn update(&self, data: &str) {
+            println!("ConcreteObserverB received: {}", data);
+        }
+    }
+\end{minted}
+Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} come trait objects:
+\begin{minted}[fontsize=\small]{Rust}
+    struct Subject {
+        observers: Vec<Box<dyn Observer>>,
+    }
+
+    impl Subject {
+        fn new() -> Self {
+            Subject {
+                observers: Vec::new(),
+            }
+        }
+
+        fn add_observer(&mut self, observer: Box<dyn Observer>) {
+            self.observers.push(observer);
+        }
+
+        fn notify_observers(&self, data: &str) {
+            for observer in &self.observers {
+                observer.update(data);
+            }
+        }
+    }
+\end{minted}
