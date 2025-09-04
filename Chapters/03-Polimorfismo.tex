@@ -374,32 +374,36 @@ Possiamo notare che:
 
 Queste informazioni provengono dal \textit{constant pool} \footnote{La constant pool contiene le costanti necessarie per l'esecuzione del codice di una specifica classe. In pratica, è una struttura dati a runtime simile a una tabella dei simboli.} del bytecode, dove il compilatore ha già registrato a quale firma di metodo corrisponde ciascuna chiamata. In altre parole, nonostante entrambe le invocazioni utilizzino l'istruzione \texttt{invokevirtual}, a runtime la JVM non ha bisogno di fare alcuna ricerca aggiuntiva: la firma è già stata scelta a compile-time in maniera univoca.
 
-Sebbene in entrambi i linguaggi si parli di \textit{static dispatch}, i meccanismi adottati sono profondamente diversi.In Rust, lo static dispatch si traduce in specializzazione del codice (funzioni distinte generate dal compilatore). In Java, invece, lo static dispatch si traduce in selezione della firma corretta (una voce distinta nel constant pool per ogni metodo). In entrambi i casi, la risoluzione avviene a compile-time e non vi è alcun overhead di dispatch a runtime. 
+Sebbene in entrambi i linguaggi si parli di \textit{static dispatch}, i meccanismi adottati sono profondamente diversi. In Rust, lo static dispatch si traduce in specializzazione del codice (funzioni distinte generate dal compilatore). In Java, invece, lo static dispatch si traduce in selezione della firma corretta (una voce distinta nel constant pool per ogni metodo). In entrambi i casi, la risoluzione avviene a compile-time e non vi è alcun overhead di dispatch a runtime. 
 \subsection{Dynamic Dispatch}
 Il meccanismo di generics e trait bounds appena descritto è adatto solamente quando si lavora con tipi omogenei di cui si conosce  il tipo esatto a compile-time. Tuttavia, quando si desidera lavorare con tipi eterogenei o quando il tipo esatto non è noto fino a runtime, è necessario utilizzare il \textit{dynamic dispatch}. 
 
-Il dynamic dispatch in Rust viene realizzato attraverso l'uso di \textit{trait objects}. Un trait object è un puntatore a un tipo che implementa un determinato trait, consentendo di chiamare metodi definiti nel trait senza conoscere il tipo concreto a compile-time. Un trait object si definisce con la sintassi \texttt{Box<dyn Trait>}\footnote{Al posto di \texttt{Box<>} si può utilizzare qualsiasi altro tipo di puntatatore. Questo è richiesto perché il compilatore di Rust deve sapere a compile time la dimensione della variabile.}, dove \texttt{Trait} è il trait che si desidera utilizzare. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione dei \texttt{Observer} i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
-\begin{minted}[fontsize=\small]{Rust}
-    trait Observer {
-        fn update(&self, data: &str);
-    }
-
-    struct ConcreteObserverA;
-
-    impl Observer for ConcreteObserverA {
-        fn update(&self, data: &str) {
-            println!("ConcreteObserverA received: {}", data);
+Il dynamic dispatch in Rust viene realizzato attraverso l'uso di \textit{trait objects}. Un trait object è un puntatore a un tipo che implementa un determinato trait, consentendo di chiamare metodi definiti nel trait senza conoscere il tipo concreto a compile-time. Un trait object si definisce con la sintassi \texttt{Box<dyn Trait>}\footnote{Al posto di \texttt{Box<>} si può utilizzare qualsiasi altro tipo di puntatatore. Questo è richiesto perché il compilatore di Rust deve sapere a compile time la dimensione della variabile.}, dove \texttt{Trait} è il trait che si desidera utilizzare. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
+\begin{listing}[H]
+    \begin{minted}[fontsize=\small]{Rust}
+        trait Observer {
+            fn update(&self, data: &str);
         }
-    }
 
-    struct ConcreteObserverB;
+        struct ConcreteObserverA;
 
-    impl Observer for ConcreteObserverB {
-        fn update(&self, data: &str) {
-            println!("ConcreteObserverB received: {}", data);
+        impl Observer for ConcreteObserverA {
+            fn update(&self, data: &str) {
+                println!("ConcreteObserverA received: {}", data);
+            }
         }
-    }
-\end{minted}
+
+        struct ConcreteObserverB;
+
+        impl Observer for ConcreteObserverB {
+            fn update(&self, data: &str) {
+                println!("ConcreteObserverB received: {}", data);
+            }
+        }
+    \end{minted}
+    \caption{Implementazione degli Observer.}
+    \label{lst:observer}
+\end{listing}
 Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} come trait objects:
 \begin{minted}[fontsize=\small]{Rust}
     struct Subject {
@@ -424,3 +428,43 @@ Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} c
         }
     }
 \end{minted}
+Rust implementa il dynamic dispatch tramite una \textit{vtable}. Essenzialmente, una vtable è una struttura generata dal compilatore che contiene puntatori a funzione per ogni metodo definito in un trait. In particolare, un trait object è rappresentato internamente come una coppia di puntatori: 
+\begin{itemize}
+    \item Un puntatore alla vtable corrispondente al trait implementato dal quel tipo.
+    \item Un puntatore ai dati del tipo concreto.
+\end{itemize}
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/vtable.drawio.pdf}
+\end{figure}
+Considerando il listato \ref{lst:observer}, per ogni tipo che implementa il trait \texttt{Observer}, il compilatore genera una vtable separata. Quando, all'interno del metodo \texttt{notify\_observers()}, viene chiamato il metodo \texttt{update()} su un trait object, Rust esegue i seguenti passi:
+\begin{itemize}
+    \item Recupera il puntatore alla vtable del tipo concreto.
+    \item Utilizza il puntatore alla vtable per trovare l'indirizzo della funzione \texttt{update()}.
+    \item Chiama la funzione \texttt{update()} passando il puntatore ai dati del tipo concreto.
+\end{itemize}
+In Java, il meccanismo di dynamic dispatch è implementato tramite il \textit{method overriding}, ossia la possibilità di ridefinire un metodo in una sottoclasse. Come in Rust, il metodo da chiamare viene determinato a runtime in base al tipo concreto dell'oggetto. Ogni classe presente in un applicazione Java ha un'area di memoria all'interno della JVM che contiene metadati riguardanti quel tipo. All'interno di questa area sono contenuti due elementi fondamentali:
+\begin{itemize}
+    \item Un puntatore alla superclasse.
+    \item Un puntatore alla vtable corrispondente al tipo concreto. Questa è simile alla vtable Rust, ossia un puntatore alla tabella dei metodi della classe.
+\end{itemize}
+In generale, quando viene chiamato un metodo su un oggetto tramite \texttt{invokevirtual}, la JVM consulta la vtable del tipo concreto per determinare quale implementazione del metodo chiamare. Se non esiste una definizione per quel metodo allora la JVM segue il puntatore alla superclasse e riprova finché non viene trovata la definizione del metodo chiamato. 
+
+Per rendere più efficiente l'invocazione dei metodi, le vtable sono organizzate in modo da ridurre al minimo l'overhead dovuto all' attraversamento della gerarchia delle classi. In particolare:
+\begin{itemize}
+    \item I metodi definiti nella superclasse vengono inseriti nella vtable della sottoclasse nello stesso ordine in cui compaiono nella superclasse.
+    \item I nuovi metodi, cioè quelli non presenti nella superclasse, vengono aggiunti in coda alla vtable.
+\end{itemize}
+Di conseguenza, quando una sottoclasse ridefinisce (override) un metodo, questo mantiene la stessa posizione occupata nella vtable della superclasse, evitando ricerche aggiuntive. Ad esempio, consideriamo la seguente gerarchia di classi:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=1\textwidth]{Figures/uml1.drawio.pdf}
+\end{figure}
+Questa produce le seguenti vtable:
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=\textwidth]{Figures/vtable1.drawio.pdf}
+    \caption{Esempio di vtable in Java.}
+    \label{fig:vtable_java}
+\end{figure}
+Considerando le vtable mostrate in Figura \ref{fig:vtable_java}, quando viene chiamato il metodo \texttt{Bear::run}, la JVM non troverà il metodo sovrascritto nella vtable di \texttt{Bear}, ma seguirà il puntatore alla superclasse \texttt{Animal} dove il metodo è definito \footnote{La prima volta che viene chiamato \texttt{Bear::run} la JVM memorizza il suo indirizzo nella vtable di \texttt{Bear}. In questo modo si migliora la performance delle chiamate successive.}. Nel caso di una gerarchia di classi più profonda, la ricerca potrebbe richiedere più passaggi e diventare più costosa. Questo sistema funziona solamente perché Java supporta l'ereditarietà singola per le classi: c'è solo un'unica superclasse diretta per ogni tipo (tranne che per \texttt{Object}).
