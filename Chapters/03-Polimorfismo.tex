@@ -21,7 +21,7 @@ Il parametric polymorphism permette di assegnare a una parte di codice un tipo g
 In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, come in Java, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui tipi generici.
 \section{Generics: Monomorphization e Type Erasure}
 \label{sec:generics}
-Sia Rust che Java supportano la programmazione generica, che consente di scrivere codice che può operare su tipi diversi senza dover duplicare il codice per ogni tipo specifico. La sintassi per definire i generics in Rust e Java è simile, utilizzando parentesi angolare per specificare i parametri di tipo. Tuttavia, ci sono differenze significative nella gestione dei generics tra i due linguaggi.
+Sia Rust che Java supportano la programmazione generica, che consente di scrivere codice che può operare su tipi diversi senza avere codice duplicato per ogni tipo specifico. La sintassi per definire i generics in Rust e Java è simile: si utilizzano parentesi angolari per specificare i parametri di tipo. Tuttavia, ci sono differenze significative nella gestione dei generics tra i due linguaggi.
 
 Il compilatore Java utilizza un processo chiamato \textit{type erasure} per implementare i generics, questo include i seguenti fatti:
 \begin{itemize}
@@ -99,7 +99,7 @@ Dopo la type erasure:
         }
     }
 \end{minted}
-In Rust, invece, i generics sono implementati tramite un processo chiamato \textit{monomorphization}. Questo è il processo tramite il cui il compilatore Rust genera codice specifico per ogni tipo concreto utilizzato con i generics. Questo significa che Rust sostituisce i parametri di tipo generici con i tipi concreti utilizzati, e genera una versione specifica della funzione o della struttura per ogni tipo. Ad esempio: 
+In Rust, invece, i generics sono implementati tramite un processo chiamato \textit{monomorphization}. Questo è il processo tramite cui il compilatore Rust genera codice specifico per ogni tipo concreto utilizzato con i generics. Questo significa che Rust sostituisce i parametri di tipo generici con i tipi concreti utilizzati, e genera una versione specifica della funzione o della struttura per ogni tipo. Ad esempio: 
 \begin{minted} [fontsize=\small] {Rust}
     struct Boxed<T> {
         value: T,
@@ -172,7 +172,7 @@ In Java, è possibile ottenere un comportamento simile ai trait bounds attravers
         /* ... */
     }
 \end{minted}
-In questo esempio, \texttt{T} è un tipo generico che deve implementare l'interfaccia \texttt{MyInterface}. Questo consente di utilizzare i metodi definiti nell'interfaccia \texttt{MyInterface} all'interno della classe \texttt{MyClass}. Anche in Java è possibile definire più vincoli di tipo attraverso l'utilizzo dell'operatore \texttt{\&}:
+In questo esempio, \texttt{T} è un tipo generico che deve implementare \texttt{Bound}. Questo consente di utilizzare i metodi definiti in \texttt{Bound} all'interno della classe \texttt{MyClass}. Anche in Java è possibile definire più vincoli di tipo\footnote{A causa dell'ereditarietà singola di Java solo un vincolo può essere una classe: il primo nella lista.} attraverso l'utilizzo dell'operatore \texttt{\&}:
 \begin{minted} [fontsize=\small] {Java}
     public class MyClass<T extends Bound & AnotherBound> {
         /* ... */ 
@@ -228,7 +228,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             fn do_something(&self, value: i32) { /* ... */ }
         }
     \end{minted}
-    \item In Rust, esiste la cosiddetta \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate \footnote{Un crate è un pacchetto di codice Rust.}. Quindi se il trait è definito nel proprio crate, si può implementare per tipi definiti altrove, ad esempio \textit{String} o \textit{i32}. In Java, invece, non è possibile aggiungere un'interfaccia a un tipo già definito senza modificarne la classe. Quindi non si può implementare un'interfaccia di un tipo su cui non si ha accesso al codice sorgente. Per ottenere un comportamento simile a Rust, si possono utilizzare tecniche come l'utilizzo di classi \textit{Wrapper}:
+    \item In Rust, esiste la cosiddetta \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate \footnote{Un crate è un pacchetto di codice Rust.}. Quindi se il trait è definito nel proprio crate, si può implementare per tipi definiti altrove, ad esempio \texttt{String} o \texttt{i32}. In Java, invece, non è possibile aggiungere un'interfaccia a un tipo già definito senza modificarne la classe. Quindi non si può implementare un'interfaccia di un tipo su cui non si ha accesso al codice sorgente. Per ottenere un comportamento simile a Rust, si possono utilizzare tecniche come l'utilizzo di classi \textit{Wrapper}:
     \begin{minted} [fontsize=\small] {Java}
         public interface MyInterface {
             void doSomething();
@@ -428,22 +428,24 @@ Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} c
         }
     }
 \end{minted}
-Rust implementa il dynamic dispatch tramite una \textit{vtable}. Essenzialmente, una vtable è una struttura generata dal compilatore che contiene puntatori a funzione per ogni metodo definito in un trait. In particolare, un trait object è rappresentato internamente come una coppia di puntatori: 
+Rust implementa il dynamic dispatch tramite una \textit{vtable}. Essenzialmente, una vtable è una struttura generata dal compilatore che contiene puntatori a funzione. In particolare, un trait object è rappresentato internamente come una coppia di puntatori: 
 \begin{itemize}
-    \item Un puntatore alla vtable corrispondente al trait implementato dal quel tipo.
+    \item Un puntatore alla vtable corrispondente alla combinazione tra il tipo concreto e il trait implementato.
     \item Un puntatore ai dati del tipo concreto.
 \end{itemize}
 \begin{figure}[H]
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/vtable.drawio.pdf}
 \end{figure}
-Considerando il listato \ref{lst:observer}, per ogni tipo che implementa il trait \texttt{Observer}, il compilatore genera una vtable separata. Quando, all'interno del metodo \texttt{notify\_observers()}, viene chiamato il metodo \texttt{update()} su un trait object, Rust esegue i seguenti passi:
+Va notato che la vtable non è generata per il trait in generale, ma per ciascuna combinazione di tipo concreto e trait implementato. Considerando il listato \ref{lst:observer}, per ogni tipo che implementa il trait \texttt{Observer}, il compilatore genera una vtable separata: quindi sarà presente una vtable per la coppia (\texttt{ConcreteObserverA, Observer}) e una per (\texttt{ConcreteObserverB, Observer}). Quando, all'interno del metodo \texttt{notify\_observers()}, viene chiamato il metodo \texttt{update()} su un trait object, Rust esegue i seguenti passi:
 \begin{itemize}
-    \item Recupera il puntatore alla vtable del tipo concreto.
+    \item Recupera il puntatore alla vtable del tipo concreto (tranne per \texttt{Object}).
     \item Utilizza il puntatore alla vtable per trovare l'indirizzo della funzione \texttt{update()}.
     \item Chiama la funzione \texttt{update()} passando il puntatore ai dati del tipo concreto.
 \end{itemize}
-In Java, il meccanismo di dynamic dispatch è implementato tramite il \textit{method overriding}, ossia la possibilità di ridefinire un metodo in una sottoclasse. Come in Rust, il metodo da chiamare viene determinato a runtime in base al tipo concreto dell'oggetto. Ogni classe presente in un applicazione Java ha un'area di memoria all'interno della JVM che contiene metadati riguardanti quel tipo. All'interno di questa area sono contenuti due elementi fondamentali:
+Questo processo consente a Rust di determinare a runtime quale implementazione del metodo chiamare, basandosi sul tipo concreto dell'oggetto. 
+
+In Java, il meccanismo di dynamic dispatch è implementato tramite il \textit{method overriding}, ossia la possibilità di ridefinire un metodo in una sottoclasse. Come in Rust, il metodo da chiamare viene determinato a runtime in base al tipo concreto dell'oggetto. Ogni classe presente in un'applicazione Java ha un'area di memoria all'interno della JVM che contiene metadati riguardanti quel tipo. All'interno di questa area sono contenuti due elementi fondamentali:
 \begin{itemize}
     \item Un puntatore alla superclasse.
     \item Un puntatore alla vtable corrispondente al tipo concreto. Questa è simile alla vtable Rust, ossia un puntatore alla tabella dei metodi della classe.
@@ -455,7 +457,7 @@ Per rendere più efficiente l'invocazione dei metodi, le vtable sono organizzate
     \item I metodi definiti nella superclasse vengono inseriti nella vtable della sottoclasse nello stesso ordine in cui compaiono nella superclasse.
     \item I nuovi metodi, cioè quelli non presenti nella superclasse, vengono aggiunti in coda alla vtable.
 \end{itemize}
-Di conseguenza, quando una sottoclasse ridefinisce (override) un metodo, questo mantiene la stessa posizione occupata nella vtable della superclasse, evitando ricerche aggiuntive. Ad esempio, consideriamo la seguente gerarchia di classi:
+Di conseguenza, quando una sottoclasse ridefinisce un metodo, questo mantiene la stessa posizione occupata nella vtable della superclasse, evitando ricerche aggiuntive. Ad esempio, consideriamo la seguente gerarchia di classi:
 \begin{figure}[H]
     \centering
     \includegraphics[width=1\textwidth]{Figures/uml1.drawio.pdf}
@@ -467,4 +469,4 @@ Questa produce le seguenti vtable:
     \caption{Esempio di vtable in Java.}
     \label{fig:vtable_java}
 \end{figure}
-Considerando le vtable mostrate in Figura \ref{fig:vtable_java}, quando viene chiamato il metodo \texttt{Bear::run}, la JVM non troverà il metodo sovrascritto nella vtable di \texttt{Bear}, ma seguirà il puntatore alla superclasse \texttt{Animal} dove il metodo è definito \footnote{La prima volta che viene chiamato \texttt{Bear::run} la JVM memorizza il suo indirizzo nella vtable di \texttt{Bear}. In questo modo si migliora la performance delle chiamate successive.}. Nel caso di una gerarchia di classi più profonda, la ricerca potrebbe richiedere più passaggi e diventare più costosa. Questo sistema funziona solamente perché Java supporta l'ereditarietà singola per le classi: c'è solo un'unica superclasse diretta per ogni tipo (tranne che per \texttt{Object}).
+Considerando le vtable mostrate in Figura \ref{fig:vtable_java}, quando viene chiamato il metodo \texttt{Bear::run}, la JVM non troverà il metodo sovrascritto nella vtable di \texttt{Bear}, ma seguirà il puntatore alla superclasse \texttt{Animal} dove il metodo è definito \footnote{La prima volta che viene chiamato \texttt{Bear::run} la JVM memorizza il suo indirizzo nella vtable di \texttt{Bear}. In questo modo si migliora la performance delle chiamate successive.}. Nel caso di una gerarchia di classi più profonda, la ricerca potrebbe richiedere più passaggi e diventare più costosa. Da notare che questo sistema funziona solamente perché Java supporta l'ereditarietà singola per le classi: c'è solo un'unica superclasse diretta per ogni tipo (tranne che per \texttt{Object}). 
