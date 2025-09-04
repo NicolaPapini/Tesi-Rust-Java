@@ -470,3 +470,10 @@ Questa produce le seguenti vtable:
     \label{fig:vtable_java}
 \end{figure}
 Considerando le vtable mostrate in Figura \ref{fig:vtable_java}, quando viene chiamato il metodo \texttt{Bear::run}, la JVM non troverà il metodo sovrascritto nella vtable di \texttt{Bear}, ma seguirà il puntatore alla superclasse \texttt{Animal} dove il metodo è definito \footnote{La prima volta che viene chiamato \texttt{Bear::run} la JVM memorizza il suo indirizzo nella vtable di \texttt{Bear}. In questo modo si migliora la performance delle chiamate successive.}. Nel caso di una gerarchia di classi più profonda, la ricerca potrebbe richiedere più passaggi e diventare più costosa. Da notare che questo sistema funziona solamente perché Java supporta l'ereditarietà singola per le classi: c'è solo un'unica superclasse diretta per ogni tipo (tranne che per \texttt{Object}). 
+
+In conclusione, sia Rust che Java implementano il dynamic dispatch tramite l'uso di vtable, ma con alcune differenze chiave che riflettono i diversi approcci dei due linguaggi al polimorfismo:
+\begin{itemize}
+    \item In Rust, le vtable sono generate per ogni combinazione di tipo concreto e trait implementato. In Java, invece, ogni classe ha una singola vtable che include tutti i metodi ereditati e quelli definiti nella classe stessa.
+    \item In Rust, il dynamic dispatch richiede l'uso esplicito di trait objects (ad esempio \texttt{Box<dyn Trait>}), mentre in Java il dynamic dispatch avviene automaticamente quando si chiama un metodo su un riferimento di tipo superclasse o interfaccia.
+    \item Teoricamente, il dynamic dispatch in Rust ha un overhead ridotto rispetto a Java. Questo perché in Rust la vtable viene consultata direttamente per trovare l'indirizzo del metodo, mentre in Java potrebbe essere necessario attraversare la gerarchia delle classi per trovare la definizione del metodo.     
+\end{itemize}
