@@ -7,7 +7,7 @@ Il polimorfismo è un concetto fondamentale della programmazione. Derivato dal g
     \item Riduce la duplicazione di codice, poiché le operazioni comuni possono essere definite una sola volta e riutilizzate per diversi tipi.
     \item Semplifica la gestione delle estensioni future, poiché nuove funzionalità possono essere aggiunte senza modificare il codice esistente.
 \end{itemize}
-In un linguaggio come Java, orientato agli oggetti, il polimorfismo è una caratteristica centrale e largamente supportata tramite ereditarietà e interfacce. Rust, pur non essendo un linguaggio tradizionalmente orientato agli oggetti, offre un approccio alternativo al polimorfismo, basato su trait e tipi generici, che permette di ottenere astrazione e flessibilità.
+In un linguaggio come Java, orientato agli oggetti, il polimorfismo è una caratteristica centrale e largamente supportata tramite ereditarietà e interfacce. Rust, pur non essendo un linguaggio tradizionalmente orientato agli oggetti, offre un approccio alternativo al polimorfismo, basato su trait (tratto, nel senso di caratteristica) e tipi generici, che permette di ottenere astrazione e flessibilità.
 
 In questo capitolo verrà fornita una panoramica delle modalità con cui Java e Rust implementano e sfruttano il polimorfismo, confrontando i due linguaggi.
 
@@ -16,9 +16,13 @@ Java supporta il polimorfismo attraverso due principali meccanismi: il \textit{s
 
 Il subtyping si basa sul fatto che ci possa essere una relazione tra tipi chiamata \textit{relazione di sottotipo}. Si dice che un tipo \textit{A} è un sottotipo di un tipo \textit{B} quando il contesto richiede un elemento di tipo \textit{B} ma può accettare un elemento di tipo \textit{A}. In Java, la relazione di sottotipo viene implementata attraverso l'ereditarietà e le interfacce. Le classi possono estendere altre classi e implementare interfacce, consentendo agli oggetti di essere trattati come istanze della loro classe base o interfaccia. 
 
-Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo.
+Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo. In particolare, Java supporta anche:
+\begin{itemize}
+    \item il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui parametri di tipo.
+    \item il \textit{F-bounded polymorphism} \cite{greenman-effing-bound-polymorphism}, che è la capacità di poter definire vincoli su un tipo generico che dipendono da quel tipo stesso. In altre parole, avere un vincolo di tipo ricorsivo. Ad esempio \texttt{<T extends Comparable<T>}\texttt{>}.
+\end{itemize}
 \section{Polimorfismo in Rust}
-In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, come in Java, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui tipi generici.
+In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}.\footnote{Entrambe le forme di polimorfismo hanno la stessa definizione data in precedenza per Java.}
 \section{Generics: Monomorphization e Type Erasure}
 \label{sec:generics}
 Sia Rust che Java supportano la programmazione generica, che consente di scrivere codice che può operare su tipi diversi senza avere codice duplicato per ogni tipo specifico. La sintassi per definire i generics in Rust e Java è simile: si utilizzano parentesi angolari per specificare i parametri di tipo. Tuttavia, ci sono differenze significative nella gestione dei generics tra i due linguaggi.
@@ -203,7 +207,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             void doSomething(T value);
         }
 
-        public class MyClass implements anInterface<String>
+        public class MyClass implements anInterface<String>,
                                         anInterface<Integer>
         {
             @Override
@@ -212,7 +216,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             // doSomething() implementare
         }        
     \end{minted}
-    In Rust, invece, un trait può essere implementato per molti tipi diversi, e ciascuna implementazione è considerata sostanzialmente un trait distinto:
+    In Rust, invece, un trait generico può essere implementato per molti tipi diversi, e ciascuna implementazione è considerata sostanzialmente un trait distinto:
     \begin{minted} [fontsize=\small] {Rust}
         trait MyTrait<T> {
             fn do_something(&self, value: T);
@@ -228,26 +232,30 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             fn do_something(&self, value: i32) { /* ... */ }
         }
     \end{minted}
+    \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate. Questo consente di esterndere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. La regola è stata introdotta per evitare conflitti di implementazione quando più crate cercano di implementare lo stesso trait per lo stesso tipo. In Java, invece, non è possibile aggiungere un'interfaccia a un tipo già definito senza modificarne la classe. Quindi non si può implementare un'interfaccia di un tipo su cui non si ha accesso al codice sorgente. Per ottenere un comportamento simile a Rust, si possono utilizzare tecniche come l'utilizzo di classi \textit{Wrapper}. 
+\end{itemize}
+
+\begin{comment}
     \item In Rust, esiste la cosiddetta \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate \footnote{Un crate è un pacchetto di codice Rust.}. Quindi se il trait è definito nel proprio crate, si può implementare per tipi definiti altrove, ad esempio \texttt{String} o \texttt{i32}. In Java, invece, non è possibile aggiungere un'interfaccia a un tipo già definito senza modificarne la classe. Quindi non si può implementare un'interfaccia di un tipo su cui non si ha accesso al codice sorgente. Per ottenere un comportamento simile a Rust, si possono utilizzare tecniche come l'utilizzo di classi \textit{Wrapper}:
-    \begin{minted} [fontsize=\small] {Java}
-        public interface MyInterface {
-            void doSomething();
-        }
-
-        public class MyWrapper implements MyInterface {
-            private final String value;
-
-            public MyWrapper(String value) {
-                this.value = value;
+        \begin{minted} [fontsize=\small] {Java}
+            public interface MyInterface {
+                void doSomething();
             }
 
-            @Override
-            public void doSomething() { /* ... */ }
-        }
-    \end{minted}
-\end{itemize}
+            public class MyWrapper implements MyInterface {
+                private final String value;
+
+                public MyWrapper(String value) {
+                    this.value = value;
+                }
+
+                @Override
+                public void doSomething() { /* ... */ }
+            }
+        \end{minted}
+\end{comment}
 \section{Meccanismi di Dispatch}
-Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{dispatch}. Esistono due forme di dispatch: 
+Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica di metodo sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{dispatch}. Esistono due forme di dispatch: 
 \begin{itemize}
     \item Lo \textit{Static Dispatch}, in cui la risoluzione della chiamata viene risolta a tempo di compilazione.
     \item Il \textit{Dynamic Dispatch}, in cui la risoluzione della chiamata avviene a run-time. 
@@ -378,7 +386,7 @@ Sebbene in entrambi i linguaggi si parli di \textit{static dispatch}, i meccanis
 \subsection{Dynamic Dispatch}
 Il meccanismo di generics e trait bounds appena descritto è adatto solamente quando si lavora con tipi omogenei di cui si conosce  il tipo esatto a compile-time. Tuttavia, quando si desidera lavorare con tipi eterogenei o quando il tipo esatto non è noto fino a runtime, è necessario utilizzare il \textit{dynamic dispatch}. 
 
-Il dynamic dispatch in Rust viene realizzato attraverso l'uso di \textit{trait objects}. Un trait object è un puntatore a un tipo che implementa un determinato trait, consentendo di chiamare metodi definiti nel trait senza conoscere il tipo concreto a compile-time. Un trait object si definisce con la sintassi \texttt{Box<dyn Trait>}\footnote{Al posto di \texttt{Box<>} si può utilizzare qualsiasi altro tipo di puntatatore. Questo è richiesto perché il compilatore di Rust deve sapere a compile time la dimensione della variabile.}, dove \texttt{Trait} è il trait che si desidera utilizzare. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
+Il dynamic dispatch in Rust viene realizzato attraverso l'uso di \textit{trait objects}. Un trait object è un puntatore a un tipo che implementa un determinato trait, consentendo di chiamare metodi definiti nel trait senza conoscere il tipo concreto a compile-time. Un trait object si definisce con la sintassi \texttt{Box<dyn Trait>}\footnote{Al posto di \texttt{Box<>} si può utilizzare qualsiasi altro tipo di puntatore. Questo è richiesto perché il compilatore di Rust deve sapere a compile time la dimensione della variabile.}, dove \texttt{Trait} è il trait che si desidera utilizzare. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
 \begin{listing}[H]
     \begin{minted}[fontsize=\small]{Rust}
         trait Observer {
