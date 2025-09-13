@@ -16,13 +16,64 @@ Java supporta il polimorfismo attraverso due principali meccanismi: il \textit{s
 
 Il subtyping si basa sul fatto che ci possa essere una relazione tra tipi chiamata \textit{relazione di sottotipo}. Si dice che un tipo \textit{A} è un sottotipo di un tipo \textit{B} quando il contesto richiede un elemento di tipo \textit{B} ma può accettare un elemento di tipo \textit{A}. In Java, la relazione di sottotipo viene implementata attraverso l'ereditarietà e le interfacce. Le classi possono estendere altre classi e implementare interfacce, consentendo agli oggetti di essere trattati come istanze della loro classe base o interfaccia. 
 
-Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo. In particolare, Java supporta anche:
+Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo. In particolare, Java supporta:
 \begin{itemize}
     \item il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui parametri di tipo.
     \item il \textit{F-bounded polymorphism} \cite{greenman-effing-bound-polymorphism}, che è la capacità di poter definire vincoli su un tipo generico che dipendono da quel tipo stesso. In altre parole, avere un vincolo di tipo ricorsivo. Ad esempio \texttt{<T extends Comparable<T>}\texttt{>}.
 \end{itemize}
 \section{Polimorfismo in Rust}
 In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}.\footnote{Entrambe le forme di polimorfismo hanno la stessa definizione data in precedenza per Java.}
+\section{Type System}
+Sia Java che Rust sono linguaggi \textit{statically typed} (staticamente tipati), il che significa che ogni variabile ha un tipo conosciuto a compile time. Inoltre, sono anche \textit{strongly typed} (fortemente tipati), ossia che il type system del linguaggio applica rigorosamente regole di tipo, impedendo operazioni tra tipi incompatibili e limitando le operazioni che possono essere eseguite su un dato tipo. Questi concetti sono fondamentali per prevenire errori di tipo a runtime.
+
+In Java sono presenti i seguenti tipi di tipi:
+\begin{itemize}
+    \item Tipi Primitivi: sono i tipi predefiniti dal linguaggio e includono:
+        \begin{itemize}
+            \item Tipi Numerici: \texttt{byte}, \texttt{short}, \texttt{int}, \texttt{long}, \texttt{char}, \texttt{float}, \texttt{double}. I primi cinque sono \textit{IntegralTypes} (interi), mentre gli ultimi due sono \textit{FloatingPointTypes} (virgola mobile).
+            \item Tipo Booleano: \texttt{boolean}.
+        \end{itemize} 
+        Variabili di tipi primitivi contengono direttamente i valori e non possono essere \texttt{null}.
+    \item Tipi Riferimento: sono memorizzati come riferimenti a oggetti nell' heap. Includono quattro diversi tipi di tipo riferimento:
+        \begin{itemize}
+            \item Tipo Classe.
+            \item Tipo Interfaccia.
+            \item Variabili di tipo. Parametro di tipo utilizzato nella programmazione generica. 
+            \item Tipo Array: definito utilizzando il nome di un tipo seguito dalle parentesi quadre \texttt{[]}. Ad esempio \texttt{int[]}, \texttt{String[]}.
+        \end{itemize}
+    \item Tipi parametrici: tipo Classe o Interfaccia nella forma \texttt{C<T1, T2, ..., Tn>}, dove \texttt{C} è il nome della classe o interfaccia e \texttt{T1, T2, ..., Tn} sono i parametri di tipo.
+\end{itemize}
+
+In Rust sono presenti i seguenti tipi di tipi:
+\begin{itemize}
+    \item Tipi primitivi:
+        \begin{itemize}
+            \item Tipo Booleano: \texttt{bool}.
+            \item Tipi Numerici: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{u128}, \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{i128}, \texttt{f32}, \texttt{f64}. I primi sei sono interi, mentre gli ultimi due sono virgola mobile.
+            \item Tipo Testuale: \texttt{char} o \texttt{str}. 
+            \item Tipo Never: \texttt{!}, rappresenta un tipo che non ha valori. Può essere utilizzato solo come tipo di ritorno di una funzione. Rappresenta il risultato di una computazione che non viene mai completata. 
+        \end{itemize} 
+    \item Tipi Sequenza: 
+        \begin{itemize}
+            \item Tipo Tupla: raggrupa insieme un insieme di valori di tipo diverso in un unico tipo composito. Ha dimensione fissa che equivale alla dimensione nel momento in cui viene dichiarata. Ad esempio, \texttt{(i32, f64, char)} è una tupla che contiene un intero a 32 bit, un numero in virgola mobile a 64 bit e un carattere.
+            \item Tipo Array: tipo che rappresenta una collezione di elementi dello stesso tipo con una dimensione fissa. Ad esempio, \texttt{[i32; 5]} è un array di cinque interi a 32 bit.
+            \item Tipo Slice: tipo che rappresenta una vista dinamica di una sequenza di elementi di tipo \texttt{T}. La sintassi è \texttt{[T]}. Solitamente viene utilizzata dietro a un tipo Puntatore.
+        \end{itemize}
+        \item Tipi definiti dall'utente: \texttt{struct}, \texttt{enum}, \texttt{union}.
+        \item Tipi Funzione: tipi che rappresentano funzioni e chiusure (\textit{closure}). Una chiusura è una funzione anonima che può catturare variabili dall'ambiente circostante. La sintassi per definire una chiusura è \texttt{|parametri| espressione}.
+        \item Tipi Puntatore: questo tipo comprende tre diversi tipi:
+            \begin{enumerate}
+                \item Tipo Riferimento: vedi sezione \ref{sec:borrowing}. 
+                \item Tipo Raw Pointer: Per un tipo \texttt{T} si hanno \texttt{*const T} e \texttt{*mut T}. Sono puntatori senza garanzie di sicurezza e liveness.
+                \item Tipo Smart Pointer: puntatori che forniscono funzionalità aggiuntive rispetto ai puntatori grezzi come la gestione automatica della memoria. I più comuni sono \texttt{Box<T>}, \texttt{Rc<T>} e \texttt{Arc<T>}. 
+                \item Tipo Puntatore a funzione: dichiarati come \texttt{fn(\&T) -> U} per una funzione che prende un riferimento a \texttt{T} e restituisce un valore di tipo \texttt{U}.
+            \end{enumerate}
+        \item Tipi Trait: 
+        \begin{itemize}
+            \item Tipi Trait generici (vedi sezione \ref{sec:rust_traits}).
+            \item Tipi \texttt{impl Trait}: utilizzati per specificare un tipo concreto che implementa uno specifico trait. 
+        \end{itemize}
+\end{itemize}
 \section{Generics: Monomorphization e Type Erasure}
 \label{sec:generics}
 Sia Rust che Java supportano la programmazione generica, che consente di scrivere codice che può operare su tipi diversi senza avere codice duplicato per ogni tipo specifico. La sintassi per definire i generics in Rust e Java è simile: si utilizzano parentesi angolari per specificare i parametri di tipo. Tuttavia, ci sono differenze significative nella gestione dei generics tra i due linguaggi.
@@ -131,7 +182,7 @@ Dopo la monomorphization, il compilatore Rust genera due versioni della struttur
         \item Nella type erasure, poiché i parametri di tipo vengono eliminati, il compilatore spesso deve inserire cast espliciti per garantire la type safety, il che può introdurre un overhead. Questo overhead è spesso trascurabile ma comunque presente. 
         \item I generics di Java non possono essere utilizzati con tipi primitivi, come \texttt{int} o \texttt{double}, ma solo con oggetti. Questo significa che quando si usano generics con tipi primitivi, Java deve utilizzare il boxing e l'unboxing, che introducono un ulteriore overhead.
         \item Poiché Java usa lo stesso bytecode per tutte le istanziazioni di un generico, non può ottimizzare il codice per tipi specifici. Questo può essere rilevante per sistemi che richiedono un alto grado di performance.
-        \item Il monomorphization è un meccanismo statico che risolve i tipi al momento della compilazione, quindi non ha overhead a runtime. Invece, la type erasure può coinvolgere il dynamic dispatch di Java che può essere più costoso in termini di performance.
+        \item Il monomorphization è un meccanismo statico che risolve i tipi al momento della compilazione, quindi una chiamata a un metodo generico è risolta a compile time e non ci sono overhead a runtime. Invece, la type erasure può coinvolgere il dynamic dispatch di Java che può essere più costoso in termini di performance.
     \end{itemize}
     \item La monomorphization può portare ad un aumento della dimensione del codice del programma compilato poiché vengono generate diverse versioni della stessa funzione generica, una per ogni combinazione di tipi con cui viene chiamata. 
     \item La monomorphization può incrementare notevolmente il tempo di compilazione del programma, specialmente se ci sono molte combinazioni di tipi concreti con cui viene chiamata una funzione generica.
@@ -142,7 +193,7 @@ Dopo la monomorphization, il compilatore Rust genera due versioni della struttur
 Un \textit{trait} è un costrutto di Rust che consente di definire un insieme di funzionalità che un tipo deve implementare. I traits vengono utilizzati, quindi, per definire comportamenti comuni che possono essere condivisi tra diversi tipi. Questo significa che tutti i tipi che implementano un determinato trait condividono la stessa interfaccia di quel trait. Un trait viene dichiarato utilizzando la keyword \texttt{trait} come segue:
 \begin{minted} [fontsize=\small] {Rust}
     pub trait MyTrait {
-        fn my_method(&self) -> String;
+        fn my_method(&self) -> ();
     }
 \end{minted}
 L'implementazione del trait avviene attraverso le keywords \texttt{impl} e \texttt{for} come segue:
@@ -232,7 +283,55 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             fn do_something(&self, value: i32) { /* ... */ }
         }
     \end{minted}
-    \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate. Questo consente di esterndere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. La regola è stata introdotta per evitare conflitti di implementazione quando più crate cercano di implementare lo stesso trait per lo stesso tipo. In Java, invece, non è possibile aggiungere un'interfaccia a un tipo già definito senza modificarne la classe. Quindi non si può implementare un'interfaccia di un tipo su cui non si ha accesso al codice sorgente. Per ottenere un comportamento simile a Rust, si possono utilizzare tecniche come l'utilizzo di classi \textit{Wrapper}. 
+    \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate. Questo consente di estendere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. Ad esempio, consideriamo il caso in cui si vuole estendere il tipo \texttt{String} in Rust. Non possiamo modificare direttamente \texttt{String} perché definito nella standard library, ma possiamo implementarci un trait come:
+    \begin{minted} [fontsize=\small] {Rust}
+        trait Shout {
+            fn shout(&self) -> String;
+        }
+
+        // Implementiamo il trait per String (tipo esterno)
+        impl Shout for String {
+            fn shout(&self) -> String {
+                self.to_uppercase() + "!"
+            }
+        }
+    \end{minted}
+    Ora, posso chiamare direttamente il metodo \texttt{shout()} su una qualsiasi istanza di \texttt{String
+    }:
+    \begin{minted} [fontsize=\small] {Rust}
+        fn main() {
+            let s = String::from("ciao");
+            println!("{}", s.shout());
+        }
+    \end{minted}
+    In Java, invece, l'estensione di comportamento è basata su inheritance e method overriding. Questo funziona solo se si vuole estendere una classe esistente (non \texttt{final}). Invece, se si vuole implementare un'interfaccia su una classe esistente, è necessario avere accesso al codice sorgente della classe per modificarla. Se questo non è possibile si deve ricorrere a metodi alternativi come l'utilizzo del pattern strutturale \textit{Adapter} come segue:
+    \begin{minted} [fontsize=\small] {Java}
+        interface Shout {
+            String shout();
+        }
+
+        // Adapter che incapsula String
+        class MyStringShoutAdapter implements Shout {
+            private String value;
+
+            public MyStringShoutAdapter(String value) {
+                this.value = value;
+            }
+
+            @Override
+            public String shout() {
+                return value.toUpperCase() + "!";
+            }
+        }
+
+        public class Main {
+            public static void main(String[] args) {
+                MyStringShoutAdapter s = new MyStringShoutAdapter("ciao");
+                System.out.println(s.shout()); // Output: CIAO!
+            }
+        }
+    \end{minted}
+    A differenza di Rust, in Java si deve definire un nuovo tipo che incapsula il tipo esistente e implementa l'interfaccia desiderata.
 \end{itemize}
 
 \begin{comment}
@@ -254,6 +353,168 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
             }
         \end{minted}
 \end{comment}
+\section{Risoluzione dei metodi: meccanismi statici e dinamici}
+Un aspetto fondamentale del polimorfismo è la risoluzione dei metodi, ossia il processo tramite cui il sistema determina quale versione specifica di un metodo deve essere eseguita al momento dell'invocazione. Questo processo può avvenire in due modi principali: staticamente (a compile-time) o dinamicamente (a run-time). Rust e Java utilizzano entrambi questi meccanismi, ma in modi diversi a causa delle loro differenze di progettazione e filosofia. In questa sezione viene trattato il funzionamento di una chiamata di metodo in entrambi i linguaggi. In particolare, per quanto riguarda Rust, il termine metodo si riferisce a una funzione definita nel contesto di una \texttt{struct} (o \texttt{enum}), definita all'interno di un blocco \texttt{impl}. Mentre per funzione si intende una funzione indipendente che viene chiamata utilizzando il suo nome seguito dagli argomenti tra parentesi (ad esempio, \texttt{function(arg1, arg2)}).
+
+Rust ha come filosofia principale la sicurezza e la performance, quest' ultima viene raggiunta attraverso l'eliminazione, per quanto possibile, di qualsiasi overhead a runtime. Questo concetto è riassunto nel credo di Rust \textit{zero-cost abstractions}: le astrazioni offerte dal linguaggio (come i generics) non comportano alcun costo a runtime, ma solo a compile time. Per questo motivo, Rust predilige l'uso di meccanismi statici di risoluzione dei metodi, come lo static dispatch tramite generics e trait bounds trattato precedentemente. Tuttavia, Rust supporta anche il dynamic dispatch attraverso l'uso di trait objects, che consente di lavorare con tipi eterogenei quando il tipo esatto non è noto fino a runtime. 
+
+Java, invece, adotta un approccio più orientato all'object-oriented tradizionale, dove per supportare l'ereditarietà e il polimorfismo, la ricerca dinamica del metodo è il comportamento di default per selezionare quale implementazione del metodo chiamare su un oggetto.
+\subsection{Rust}
+Il caso più semplice da considerare in Rust è quello in cui si chiama una funzione classica:
+\begin{minted}[fontsize=\small]{Rust}
+    fn plus_one(x: i32) -> i32 {
+        x + 1
+    }
+
+    fn main() {
+        let result = plus_one(5);
+        println!("The result is: {}", result);
+    }
+\end{minted}
+Il compilatore Rust è capace di determinare esattamente quale funzione chiamare, poiché non vi è alcuna ambiguità: esiste una sola funzione con quel nome e quella firma. In questo caso, la risoluzione del metodo avviene in modo statico, senza alcun overhead a runtime. In particolare, il compilatore Rust spesso ottimizza aggressivamente chiamate di funzioni (e metodi) attraverso l'\textit{inlining}, che consiste nel sostituire la chiamata alla funzione con il corpo della funzione stessa. Questo elimina il costo della chiamata di funzione, migliorando ulteriormente le performance.
+
+Il caso più interessante avviene quando viene eseguita una chiamata di metodo. Le chiamate di metodo vengono risolte a metodi associati a trait specifici, eseguendo
+\begin{itemize}
+    \item Dispatch statico se il tipo esatto su cui il metodo è chiamato è conosciuto a compile-time.
+    \item Dispatch dinamico se il tipo su cui il metodo è chiamato è un \textit{trait object} indiretto (vedi sezione \ref{sec:trait_objects}).
+\end{itemize}
+Durante una chiamata di metodo, il ricevente del metodo può essere automaticamente dereferenziato o preso in prestito (borrowed in maniera mutabile e immutabile) per soddisfare la firma del metodo. Questa è una caratteristica che Rust mette a disposizione per rendere le chiamate di metodo più semplici da scrivere. Ad esempio, consideriamo lo smart pointer:
+\begin{minted}[fontsize=\small]{Rust}
+    let b: Box<String> = Box::new("hello".to_string());
+\end{minted}
+Se si desidera chiamare il metodo \texttt{len()} su \texttt{b}, che restituisce la lunghezza della stringa, si dovrebbe dereferenziare manualmente come segue:
+\begin{minted}[fontsize=\small]{Rust}
+    let len = (*b).len();
+\end{minted}
+Invece, Rust permette di chiamare direttamente il metodo sullo smart pointer, e si occuperà automaticamente di dereferenziare:
+\begin{minted}[fontsize=\small]{Rust}
+    let len = b.len();
+\end{minted}
+Questa caratteristica richiede un processo di lookup più complesso, poiché potrebbe esserci più di un modo per soddisfare la firma del metodo e quindi più metodi che potrebbero essere chiamati. Ad esempio:
+\begin{minted}[fontsize=\small]{Rust}
+    trait Greet {
+        fn greet(&self); //Borrow immutabile
+    }
+
+    trait GreetMut {
+        fn greet(&mut self); //Borrow mutabile
+    }
+
+    struct Person {
+        name: String,
+    }
+
+    impl Greet for Person {
+        fn greet(&self) {
+            println!("Hello, I'm {} (immutable)", self.name);
+        }
+    }
+
+    impl GreetMut for Person {
+        fn greet(&mut self) {
+            println!("Hello, I'm {} (mutable)", self.name);
+        }
+    }
+
+    fn main() {
+        let mut person = Person { name: "Alice".to_string() };
+        person.greet();
+    }
+\end{minted}
+La chiamata \texttt{person.greet()} potrebbe essere risolta a:
+\begin{itemize}
+    \item \texttt{Greet::greet(\&self)} che richiede un borrow immutabile.
+    \item \texttt{GreetMut::greet(\&mut self)} che richiede un borrow mutabile.
+\end{itemize}
+Poiché \texttt{person} è mutabile, entrambi i borrow sono permessi:
+\begin{itemize}
+    \item Il borrow immutabile è permesso perché \texttt{person} è dichiarato come mutabile.
+    \item Il borrow mutabile è permesso perché \texttt{person} è dichiarato come mutabile.
+\end{itemize}
+Il codice appena scritto compila correttamente poiché Rust risolve questo problema utilizzando un algoritmo di risoluzione dei metodi che cerca il metodo più specifico possibile, seguendo un ordine di priorità ben definito. Considerando \texttt{value.method()}, l'algoritmo di risoluzione dei metodi di Rust si basa sulla costruzione di una lista di tipi candidati per il ricevente \texttt{value}. Per ottenere questa lista, il compilatore Rust esegue i seguenti passi:
+\begin{enumerate}
+    \item Dereferenzia ripetutamente il tipo di \texttt{value}. 
+    \item Tenta di eseguire \textit{unsized coercions} \footnote{In Rust, un'\textit{unsized coercion} è una conversione automatica da un tipo con dimensione nota a compile-time (sized) a un tipo senza dimensione fissa (unsized), come ad esempio da \texttt{[T; n]} a \texttt{[T]}.} (conversione automatica verso tipi senza dimensione fissa)  e aggiunge il tipo risultante alla lista se la conversione ha successo.
+    \item Per ogni candidato di tipo \texttt{T}, aggiunge \texttt{\&T}, \texttt{\&mut T} nella lista immediatamente dopo \texttt{T}.
+\end{enumerate}
+Una volta costruita la lista, per ogni tipo candidato \texttt{T}, il compilatore ricerca \texttt{.method()} in \texttt{T}. La ricerca avviene tra:
+\begin{itemize}
+    \item I metodi innati (\textit{inherent methods}), ossia i metodi definiti nel blocco \texttt{impl} per il tipo \texttt{T}.
+    \item Metodi contenuti in ogni trait visibile implementati dal tipo.
+\end{itemize}
+Questa ricerca avviene in ordine e termina non appena viene trovato esattamente un metodo che corrisponde alla firma richiesta. Se viene trovato più di un metodo corrispondente ad un determinato tipo, si verifica un errore di ambiguità. In questo caso, lo sviluppatore deve usare la \textit{Fully Qualified Syntax} \footnote{La sintassi per la fully qualified syntax è \texttt{<Type as Trait>::method(\&received, args...)}} per indicare esplicitamente quale metodo chiamare. Il risultato di questa ricerca determina in che modo il metodo viene chiamato:
+\begin{itemize}
+    \item Se la ricerca ha successo su un tipo concreto, il metodo viene chiamato direttamente su quel tipo, utilizzando lo static dispatch.
+    \item Se la ricerca ha successo su un trait object, il metodo viene chiamato tramite dynamic dispatch. 
+\end{itemize}
+\subsubsection{Trait Objects e Dynamic Dispatch}
+\label{sec:trait_objects}
+Un trait object è definito come un valore opaco \footnote{Per opaco si intende che il compilatore non sa esattamente quale sia il tipo concreto, ma che implementa certe caratteristiche (traits).} di un altro tipo che implementa un insieme di traits.  Un trait object è dichiarato utilizzando la keyword \texttt{dyn} seguita da un trait, ad esempio \texttt{dyn MyTrait}. Essendo opaco, la dimensione di un trait object non è conosciuta staticamente e quindi, in gergo Rust, sono \textit{Dynamically Sized Types} (DST). Per questo motivo, i trait object devono essere sempre utilizzati dietro a un tipo puntatore, come \texttt{\&dyn MyTrait} o \texttt{Box<dyn MyTrait>}. Internamente, un trait object è rappresentato come una coppia di puntatori:
+\begin{itemize}
+    \item Un puntatore a un istanza di un tipo \texttt{T} che implementa \texttt{MyTrait}.
+    \item Un puntatore alla \textit{vtable} corrispondente alla combinazione tra il tipo concreto e il trait implementato.  
+\end{itemize}  
+\begin{figure}[H]
+    \centering
+    \includegraphics[width=0.8\textwidth]{Figures/vtable.drawio.pdf}
+\end{figure}
+Va notato che la vtable non è generata per il trait in generale, ma per ciascuna combinazione di tipo concreto e trait implementato. Ad esempio, consideriamo l'implementazione del design pattern Observer: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
+\begin{minted}[fontsize=\small]{Rust}
+    trait Observer {
+        fn update(&self, data: &str);
+    }
+
+    struct ConcreteObserverA;
+
+    impl Observer for ConcreteObserverA {
+        fn update(&self, data: &str) {
+            println!("ConcreteObserverA received: {}", data);
+        }
+    }
+
+    struct ConcreteObserverB;
+
+    impl Observer for ConcreteObserverB {
+        fn update(&self, data: &str) {
+            println!("ConcreteObserverB received: {}", data);
+        }
+    }
+\end{minted}
+Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} come trait objects:
+\begin{minted}[fontsize=\small]{Rust}
+    struct Subject {
+        observers: Vec<Box<dyn Observer>>,
+    }
+
+    impl Subject {
+        fn new() -> Self {
+            Subject {
+                observers: Vec::new(),
+            }
+        }
+
+        fn add_observer(&mut self, observer: Box<dyn Observer>) {
+            self.observers.push(observer);
+        }
+
+        fn notify_observers(&self, data: &str) {
+            for observer in &self.observers {
+                observer.update(data);
+            }
+        }
+    }
+\end{minted}
+In questa implementazione, il compilatore genera due vtable separate: una per la coppia \texttt{(ConcreteObserverA, Observer)} e una per la coppia \texttt{(ConcreteObserverB, Observer)}. 
+
+Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. Per risolvere la chiamata a runtime viene utilizzata la vtable. Considerando l'esempio precedente, quando viene eseguita la chiamata \texttt{observer.update(data)}, Rust procede nel seguente modo:
+\begin{itemize}
+    \item Accede alla vtable corretta tramite il puntatore memorizzato nel trait object.
+    \item Recupera il puntatore alla funzione \texttt{update()} dalla vtable.
+    \item Chiama la funzione \texttt{update()} utilizzato il puntatore ai dati del tipo concreto del trait object.
+\end{itemize}
+Questo processo consente a Rust di determinare a runtime quale implementazione del metodo chiamare basandosi sul tipo concreto dell'oggetto. 
+\subsection{Java}
+Come accennato in precedenza, in Java la ricerca dinamica del metodo è il comportamento di default per gran parte delle invocazioni di metodo sugli oggetti. 
 \section{Meccanismi di Dispatch}
 Quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica di metodo sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{dispatch}. Esistono due forme di dispatch: 
 \begin{itemize}
