@@ -15,56 +15,6 @@ In particolare, quando il codice coinvolge il polimorfismo, sono necessari mecca
     \item Il \textit{Dynamic Dispatch}, in cui la risoluzione della chiamata avviene a run-time. 
 \end{itemize}
 In questo capitolo verrà fornita una panoramica delle modalità con cui Java e Rust forniscono supporto al polimorfismo, confrontando i due linguaggi.
-\section{Tipi}
-Sia Java che Rust sono linguaggi \textit{statically typed} (staticamente tipati), il che significa che ogni variabile ha un tipo conosciuto a compile time. Inoltre, sono anche \textit{strongly typed} (fortemente tipati), ossia che il type system del linguaggio applica rigorosamente regole di tipo, impedendo operazioni tra tipi incompatibili e limitando le operazioni che possono essere eseguite su un dato tipo. Questi concetti sono fondamentali per prevenire errori di tipo a runtime.
-
-In Java sono presenti i seguenti tipi di tipi:
-\begin{itemize}
-    \item Tipi Primitivi: sono i tipi predefiniti dal linguaggio e includono:
-        \begin{itemize}
-            \item Tipi Numerici: \texttt{byte}, \texttt{short}, \texttt{int}, \texttt{long}, \texttt{char}, \texttt{float}, \texttt{double}. I primi cinque sono \textit{IntegralTypes} (interi), mentre gli ultimi due sono \textit{FloatingPointTypes} (virgola mobile).
-            \item Tipo Booleano: \texttt{boolean}.
-        \end{itemize} 
-        Variabili di tipi primitivi contengono direttamente i valori e non possono essere \texttt{null}.
-    \item Tipi Riferimento: sono memorizzati come riferimenti a oggetti nell' heap. Includono quattro diversi tipi di tipo riferimento:
-        \begin{itemize}
-            \item Tipo Classe.
-            \item Tipo Interfaccia.
-            \item Variabili di tipo. Parametro di tipo utilizzato nella programmazione generica. 
-            \item Tipo Array: definito utilizzando il nome di un tipo seguito dalle parentesi quadre \texttt{[]}. Ad esempio \texttt{int[]}, \texttt{String[]}.
-        \end{itemize}
-    \item Tipi parametrici: tipo Classe o Interfaccia nella forma \texttt{C<T1, T2, ..., Tn>}, dove \texttt{C} è il nome della classe o interfaccia e \texttt{T1, T2, ..., Tn} sono i parametri di tipo.
-\end{itemize}
-In Rust sono presenti i seguenti tipi di tipi:
-\begin{itemize}
-    \item Tipi primitivi:
-        \begin{itemize}
-            \item Tipo Booleano: \texttt{bool}.
-            \item Tipi Numerici: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{u128}, \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{i128}, \texttt{f32}, \texttt{f64}. I primi sei sono interi, mentre gli ultimi due sono virgola mobile.
-            \item Tipo Testuale: \texttt{char} o \texttt{str}. 
-            \item Tipo Never: \texttt{!}, rappresenta un tipo che non ha valori. Può essere utilizzato solo come tipo di ritorno di una funzione. Rappresenta il risultato di una computazione che non viene mai completata. 
-        \end{itemize} 
-    \item Tipi Sequenza: 
-        \begin{itemize}
-            \item Tipo Tupla: raggrupa insieme un insieme di valori di tipo diverso in un unico tipo composito. Ha dimensione fissa che equivale alla dimensione nel momento in cui viene dichiarata. Ad esempio, \texttt{(i32, f64, char)} è una tupla che contiene un intero a 32 bit, un numero in virgola mobile a 64 bit e un carattere.
-            \item Tipo Array: tipo che rappresenta una collezione di elementi dello stesso tipo con una dimensione fissa. Ad esempio, \texttt{[i32; 5]} è un array di cinque interi a 32 bit.
-            \item Tipo Slice: tipo che rappresenta una vista dinamica di una sequenza di elementi di tipo \texttt{T}. La sintassi è \texttt{[T]}. Solitamente viene utilizzata dietro a un tipo Puntatore.
-        \end{itemize}
-        \item Tipi definiti dall'utente: \texttt{struct}, \texttt{enum}, \texttt{union}.
-        \item Tipi Funzione: tipi che rappresentano funzioni e chiusure (\textit{closure}). Una chiusura è una funzione anonima che può catturare variabili dall'ambiente circostante. La sintassi per definire una chiusura è \texttt{|parametri| espressione}.
-        \item Tipi Puntatore: questo tipo comprende tre diversi tipi:
-            \begin{enumerate}
-                \item Tipo Riferimento: vedi sezione \ref{sec:borrowing}. 
-                \item Tipo Raw Pointer: Per un tipo \texttt{T} si hanno \texttt{*const T} e \texttt{*mut T}. Sono puntatori senza garanzie di sicurezza e liveness.
-                \item Tipo Smart Pointer: puntatori che forniscono funzionalità aggiuntive rispetto ai puntatori grezzi come la gestione automatica della memoria. I più comuni sono \texttt{Box<T>}, \texttt{Rc<T>} e \texttt{Arc<T>}. 
-                \item Tipo Puntatore a funzione: dichiarati come \texttt{fn(\&T) -> U} per una funzione che prende un riferimento a \texttt{T} e restituisce un valore di tipo \texttt{U}.
-            \end{enumerate}
-        \item Tipi Trait: 
-        \begin{itemize}
-            \item Tipi Trait Object (vedi sezione \ref{sec:trait_objects}).
-            \item Tipi \texttt{impl Trait}: utilizzati in posizione di ritorno o come parametro di funzione per indicare che la funzione restituisce o accetta un tipo che implementa un certo trait. È una forma alternativa per indicare un tipo generico con un vincolo di trait (vedi sezione \ref{sec:rust_traits}).
-        \end{itemize}
-\end{itemize}
 \section{Polimorfismo in Java}
 Java supporta il polimorfismo attraverso due principali meccanismi: il \textit{subtyping} (polimorfismo per inclusione) e il \textit{parametric polymorphism} (polimorfismo parametrico). 
 
@@ -210,11 +160,14 @@ L'implementazione del trait avviene attraverso le keywords \texttt{impl} e \text
         }
     }
 \end{minted}
-In particolare, in Rust, il termine metodo si riferisce a una funzione definita all'interno di un blocco \texttt{impl}. Mentre per funzione si intende una funzione indipendente che viene chiamata utilizzando il suo nome seguito dagli argomenti tra parentesi (ad esempio, \texttt{function(arg1, arg2)}). Nell'esempio precedente, \texttt{my\_method()} è un metodo. Un metodo in Rust può essere chiamato utilizzando la notazione puntata, ad esempio:
+%TODO: rimosso perché spiegato nel capitolo 1
+\begin{comment}
+    In particolare, in Rust, il termine metodo si riferisce a una funzione definita all'interno di un blocco \texttt{impl}. Mentre per funzione si intende una funzione indipendente che viene chiamata utilizzando il suo nome seguito dagli argomenti tra parentesi (ad esempio, \texttt{function(arg1, arg2)}). Nell'esempio precedente, \texttt{my\_method()} è un metodo. Un metodo in Rust può essere chiamato utilizzando la notazione puntata, ad esempio:
 \begin{minted} [fontsize=\small] {Rust}
     let obj = MyStruct;
     obj.my_method(); // Chiamata al metodo
 \end{minted}
+\end{comment}
 I traits possono essere utilizzati per realizzare il bounded parametric polymorphism in Rust, consentendo di specificare vincoli sui tipi generici (\textit{trait bounds}). Ad esempio, si può definire una funzione che accetta un tipo generico che implementa un determinato trait nel seguente modo:
 \begin{minted} [fontsize=\small] {Rust}
     fn my_function<T: MyTrait>(item: T) {
@@ -246,73 +199,73 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
 \begin{itemize}
     \item In Rust, un trait non è un tipo concreto, ma un insieme di metodi che un tipo può implementare. In Java, invece, un' interfaccia funge sia da contratto sia da tipo: quando una classe implementa un'interfaccia, è possibile trattare gli oggetti di quella classe come istanze del tipo dell'interfaccia stessa. La differenza principale è, quindi, che in Rust il trait è separato dal tipo concreto, mentre in Java l'interfaccia può essere usata direttamente come tipo del riferimento.
     \item In Java, le interfacce richiedono che la classe che le implementa abbia metodi con nomi specifici. Questo può creare conflitti: ad esempio, due interfacce potrebbero essere impossibili da implementare contemporaneamente se hanno metodi con lo stesso nome ma tipi di ritorno diversi. Ad esempio:
-    \begin{minted} [fontsize=\small] {Java}
-        public interface InterfaceA {
-            String getValue();
-        }
+\begin{minted} [fontsize=\small] {Java}
+    public interface InterfaceA {
+        String getValue();
+    }
 
-        public interface InterfaceB {
-            int getValue();
-        }
+    public interface InterfaceB {
+        int getValue();
+    }
 
-        public class MyClass implements InterfaceA, InterfaceB {
-            // Errore: il compilatore non sa quale
-            // metodo getValue() implementare
-        }
-    \end{minted}
+    public class MyClass implements InterfaceA, InterfaceB {
+        // Errore: il compilatore non sa quale
+        // metodo getValue() implementare
+    }
+\end{minted}
     In Rust, invece, ogni trait ha il proprio namespace separato. Quando si implementa un trait per un tipo, lo si fa in un blocco \texttt{impl} separato specificando il trait. In questo modo è sempre esplicito a quale trait appartiene ogni metodo, evitando conflitti tra trait diversi. Nel caso in cui  entrambi i trait sono nello scope è necessario specificare il trait usando la sintassi \texttt{Trait::method(\&obj)} invece della semplice chiamata con la notazione puntata.
     \item In Java, le interfacce possono avere parametri di tipo. Tuttavia, un oggetto può implementare un'interfaccia generica solo una volta:
-    \begin{minted} [fontsize=\small] {Java}
-        public interface anInterface<T> {
-            void doSomething(T value);
-        }
+\begin{minted} [fontsize=\small] {Java}
+    public interface anInterface<T> {
+        void doSomething(T value);
+    }
 
-        public class MyClass implements anInterface<String>,
-                                        anInterface<Integer>
-        {
-            @Override
-            public void doSomething(String value) { /* ... */ }
-            //Errore: il compilatore non sa quale metodo 
-            // doSomething() implementare
-        }        
-    \end{minted}
+    public class MyClass implements anInterface<String>,
+                                    anInterface<Integer>
+    {
+        @Override
+        public void doSomething(String value) { /* ... */ }
+        //Errore: il compilatore non sa quale metodo 
+        // doSomething() implementare
+    }        
+\end{minted}
     In Rust, invece, un trait generico può essere implementato per molti tipi diversi, e ciascuna implementazione è considerata sostanzialmente un trait distinto:
-    \begin{minted} [fontsize=\small] {Rust}
-        trait MyTrait<T> {
-            fn do_something(&self, value: T);
-        }
+\begin{minted} [fontsize=\small] {Rust}
+    trait MyTrait<T> {
+        fn do_something(&self, value: T);
+    }
 
-        struct MyStruct;
+    struct MyStruct;
 
-        impl MyTrait<String> for MyStruct {
-            fn do_something(&self, value: String) { /* ... */ }
-        }
+    impl MyTrait<String> for MyStruct {
+        fn do_something(&self, value: String) { /* ... */ }
+    }
 
-        impl MyTrait<i32> for MyStruct {
-            fn do_something(&self, value: i32) { /* ... */ }
-        }
-    \end{minted}
+    impl MyTrait<i32> for MyStruct {
+        fn do_something(&self, value: i32) { /* ... */ }
+    }
+\end{minted}
     \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate. Questo consente di estendere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. Ad esempio, consideriamo il caso in cui si vuole estendere il tipo \texttt{String} in Rust. Non possiamo modificare direttamente \texttt{String} perché definito nella standard library, ma possiamo implementarci un trait come:
-    \begin{minted} [fontsize=\small] {Rust}
-        trait Shout {
-            fn shout(&self) -> String;
-        }
+\begin{minted} [fontsize=\small] {Rust}
+    trait Shout {
+        fn shout(&self) -> String;
+    }
 
-        // Implementiamo il trait per String (tipo esterno)
-        impl Shout for String {
-            fn shout(&self) -> String {
-                self.to_uppercase() + "!"
-            }
+    // Implementiamo il trait per String (tipo esterno)
+    impl Shout for String {
+        fn shout(&self) -> String {
+            self.to_uppercase() + "!"
         }
-    \end{minted}
+    }
+\end{minted}
     Ora, posso chiamare direttamente il metodo \texttt{shout()} su una qualsiasi istanza di \texttt{String
     }:
-    \begin{minted} [fontsize=\small] {Rust}
-        fn main() {
-            let s = String::from("ciao");
-            println!("{}", s.shout());
-        }
-    \end{minted}
+\begin{minted} [fontsize=\small] {Rust}
+    fn main() {
+        let s = String::from("ciao");
+        println!("{}", s.shout());
+    }
+\end{minted}
     In Java, invece, l'estensione di comportamento è basata su inheritance e method overriding. Questo funziona solo se si vuole estendere una classe esistente (non \texttt{final}). Invece, se si vuole implementare un'interfaccia su una classe esistente, è necessario avere accesso al codice sorgente della classe per modificarla. Se questo non è possibile si deve ricorrere a metodi alternativi come l'utilizzo del pattern strutturale \textit{Adapter} \cite{gamma-design-patterns} come segue:
     \begin{minted} [fontsize=\small] {Java}
         // Interfaccia che vogliamo usare 
@@ -323,7 +276,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
 
         // Classe esistente (non modificabile)
         class LegacySensor {
-            public int readValue() { ... }
+            public int readValue() { /* ... */ }
         }
 
         // Adapter che incapsula LegacySensor
@@ -632,11 +585,12 @@ Il caso più interessante è quello delle chiamate a metodi virtuali. Java mette
     \item \textit{Method Overloading}, che consente di definire più metodi con lo stesso nome ma firme diverse (diverso numero o tipo di parametri). 
     \item \textit{Method Overriding}, che consente a una sottoclasse di fornire una nuova implementazione di un metodo ereditato dalla superclasse. 
 \end{itemize}
-L'overloading è un meccanismo statico, questo significa che la firma del metodo da chiamare è scelta in fase di compilazione in base al tipo statico sia dell'oggetto su cui viene chiamato che degli argomenti con cui il metodo viene chiamato.
+L'overloading è un meccanismo statico, questo significa che la firma del metodo da chiamare è scelta in fase di compilazione in base al tipo statico sia dell'oggetto su cui viene chiamato, che degli argomenti con cui il metodo viene chiamato.
 
 L'overriding, invece, è un meccanismo dinamico: la scelta del metodo avviene a runtime in base al tipo effettivo dell'oggetto su cui il metodo viene chiamato. Questo permette di ottenere il comportamento polimorfo tipico della programmazione orientata agli oggetti. 
 \section{Estensione del comportamento in Java e Rust}
-Considerando quanto detto nelle sezioni precedenti si può notare una differenza sostanziale tra Java e Rust: in Java, una classe definisce tre diversi elementi:
+\label{sec:extending_behavior}
+Considerando quanto detto nelle sezioni precedenti, in particolare le sezioni \ref{sec:structs} e \ref{sec:rust_traits}, si può notare una differenza sostanziale tra Java e Rust: in Java, una classe definisce tre diversi elementi:
 \begin{itemize}
     \item Lo stato degli oggetti attraverso i campi.
     \item Il comportamento attraverso i metodi.
@@ -647,7 +601,7 @@ questo è molto diverso con quello che accade in Rust in cui questi tre elementi
     \item Lo stato e il tipo degli oggetti è definito dalle \texttt{struct}.
     \item Il comportamento è definito all'interno di un blocco \texttt{impl} che può essere associato a una \texttt{struct} o a un \texttt{trait}.
 \end{itemize}
-Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità (la classe), mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. Ad esempio, consideriamo il seguente codice Java:
+Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità, la classe, mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. Ad esempio, consideriamo il seguente codice Java:
 \begin{minted}[fontsize = \small]{Java}
     class Employee {
         private double salary;
@@ -704,7 +658,7 @@ Ora, consideriamo il caso in cui si voglia trattare \texttt{Manager} e \texttt{E
         }
     }
 \end{minted}
-In questo caso, tramite il polimorfismo dinamico di Java, il metodo \texttt{processPayment()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{getSalary()} in base al tipo effettivo dell'oggetto passato. In Rust, il codice precedente non permette questa flessibilità, poiché \texttt{Manager} ed \texttt{Employee} sono completamente scorrelati a livello di tipi. Per ottenere un comportamento simile in Rust, si può utilizzare un trait per definire un'interfaccia comune:
+In questo caso, tramite il polimorfismo dinamico di Java, il metodo \texttt{processPayment()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{getSalary()} in base al tipo concreto dell'oggetto passato. In Rust, il codice precedente non permette questa flessibilità, poiché \texttt{Manager} ed \texttt{Employee} sono completamente scorrelati a livello di tipi. Per ottenere un comportamento simile in Rust, si può utilizzare un trait per definire un'interfaccia comune:
 \begin{minted}[fontsize = \small]{Rust}
     trait Payable {
         fn get_salary(&self) -> f64;
@@ -733,12 +687,12 @@ Adesso \texttt{Employee} e \texttt{Manager} implementano entrambi il trait \text
         }
     }
 \end{minted}
-In questo modo, la funzione \texttt{pay\_salary()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{get\_salary()} in base al tipo effettivo dell'oggetto passato. Tuttavia, a differenza di Java, questa flessibilità viene ottenuta tramite l'uso di generics e trait, piuttosto che tramite relazioni di sottotipo. Inoltre, a differenza di Java, il meccanismo utilizzato da Rust è completamente statico come visto nella sezione \ref{sec:generics}. 
+In questo modo, la funzione \texttt{pay\_salary()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{get\_salary()} in base al tipo effettivo dell'oggetto passato. Tuttavia, a differenza di Java, questa flessibilità viene ottenuta tramite l'uso di generics e trait, piuttosto che tramite relazioni di sottotipo. Inoltre, a differenza di Java, il meccanismo utilizzato da Rust è completamente statico, come visto nella sezione \ref{sec:generics}. 
 
 Estendiamo ulteriormente l'esempio aggiungendo un nuovo metodo nella classe \texttt{Payroll}:
 \begin{minted}[fontsize = \small]{Java}
     class Payroll {
-        public void paySalary(Employee emp) { ... }
+        public void paySalary(Employee emp) { /* ... */ }
 
         public void payEmployees(List<Employee> employees) {
             for (Employee emp : employees) {
@@ -750,7 +704,7 @@ Estendiamo ulteriormente l'esempio aggiungendo un nuovo metodo nella classe \tex
 Ancora una volta, grazie al subtyping di Java, \texttt{payEmployees()} funziona correttamente. In Rust, limitarsi a usare generics non è sufficiente per ottenere lo stesso comportamento. Questo perché i generics vengono monomorfizzati, rendendo impossibile la creazione di una collezione di tipi eterogenei. Per ottenere questo comportamento in Rust, si deve utilizzare un trait object:
 \begin{minted}[fontsize = \small]{Rust}
     impl Payroll {
-        fn pay_salary<T: Payable>(&self, emp: &T) { ... }
+        fn pay_salary<T: Payable>(&self, emp: &T) { /* ... */ }
 
         fn pay_employees(&self, employees: &Vec<Box<dyn Payable>>) {
             for emp in employees {
@@ -759,7 +713,7 @@ Ancora una volta, grazie al subtyping di Java, \texttt{payEmployees()} funziona 
         }
     }
 \end{minted}
-In questo caso, tramite trait objects e dynamic dispatch, la funzione \texttt{pay\_employees()} può accettare una collezione di oggetti eterogenei che implementano il trait \texttt{Payable}, e chiamare il metodo corretto \texttt{get\_salary()} in base al tipo effettivo di ogni oggetto nella collezione. 
+In questo caso, tramite trait objects e dynamic dispatch, la funzione \texttt{pay\_employees()} può accettare una collezione di oggetti eterogenei che implementano il trait \texttt{Payable}, e chiamare il metodo \texttt{get\_salary()} corretto in base al tipo effettivo di ogni oggetto nella collezione. 
 
 Da questo esempio si notare differenze sostanziali tra come i due linguaggi supportano l'estensione del comportamento. Non esiste un approccio migliore ma dipende dal contesto specifico e dai requisiti del progetto. In generale, si possono fare le seguenti osservazioni:
 \begin{itemize}

@@ -1,0 +1,380 @@
+% !TEX root = ../Thesis.tex
+
+\chapter{Concetti fondamentali}
+\begin{comment}
+The introduction is usually a short chapter that can be read in less than 10 minutes.
+
+The goal of the Introduction is to engage the reader (why you should keep reading).
+You don't have to discuss anything in detail. Rather, the goal is to tell the reader:
+\begin{itemize}
+%  \item Why something has to be done (why the thesis topic is important),
+  \item what is the problem dealt with and why the problem is a problem;
+  \item what is the particular topic you're going to talk about in the thesis;
+  \item what are your goals in doing so, and what methodology do you follow;
+  \item what are the implications of your work.
+\end{itemize}
+
+The above points will be further expanded in the following chapters, so only a glimpse is essential. 
+
+\medskip
+
+It is customary to conclude the Introduction with a summary of the content of the rest of the thesis. One or two sentences are enough for each chapter.
+\end{comment}
+In questo capitolo vengono introdotti i concetti fondamentali per la comprensione del lavoro svolto in questa tesi. In particolare, verrà fornita una panoramica sui tipi di dato e sulla sintassi fondamentale di Rust, eseguendo un confronto con Java. 
+\section{Tipi}
+Sia Java che Rust sono linguaggi \textit{statically typed} (staticamente tipati), il che significa che ogni variabile ha un tipo conosciuto a compile time. Inoltre, sono anche \textit{strongly typed} (fortemente tipati), ossia che il type system del linguaggio applica rigorosamente regole di tipo, impedendo operazioni tra tipi incompatibili e limitando le operazioni che possono essere eseguite su un dato tipo. Questi concetti sono fondamentali per prevenire errori di tipo a runtime.
+
+In Java sono presenti i seguenti tipi di tipi:
+\begin{itemize}
+    \item Tipi Primitivi: sono i tipi predefiniti dal linguaggio e includono:
+        \begin{itemize}
+            \item Tipi Numerici: \texttt{byte}, \texttt{short}, \texttt{int}, \texttt{long}, \texttt{char}, \texttt{float}, \texttt{double}. I primi cinque sono \textit{IntegralTypes} (interi), mentre gli ultimi due sono \textit{FloatingPointTypes} (virgola mobile).
+            \item Tipo Booleano: \texttt{boolean}.
+        \end{itemize} 
+        Variabili di tipi primitivi contengono direttamente i valori e non possono essere \texttt{null}.
+    \item Tipi Riferimento: sono memorizzati come riferimenti a oggetti nell' heap. Includono quattro diversi tipi di tipo riferimento:
+        \begin{itemize}
+            \item Tipo Classe.
+            \item Tipo Interfaccia.
+            \item Variabili di tipo: parametro di tipo utilizzato nella programmazione generica. 
+            \item Tipo Array: definito utilizzando il nome di un tipo seguito dalle parentesi quadre \texttt{[]}. Ad esempio \texttt{int[]}, \texttt{String[]}.
+        \end{itemize}
+    \item Tipi parametrici: tipo Classe o Interfaccia nella forma \texttt{C<T1, T2, ..., Tn>}, dove \texttt{C} è il nome della classe o interfaccia e \texttt{T1, T2, ..., Tn} sono i parametri di tipo.
+\end{itemize}
+In Rust sono presenti i seguenti tipi di tipi:
+\begin{itemize}
+    \item Tipi primitivi:
+        \begin{itemize}
+            \item Tipo Booleano: \texttt{bool}.
+            \item Tipi Numerici: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{u128}, \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{i128}, \texttt{f32}, \texttt{f64}. I primi sei sono interi, mentre gli ultimi due sono virgola mobile.
+            \item Tipo Testuale: \texttt{char} o \texttt{str}. 
+            \item Tipo Never: \texttt{!}, rappresenta un tipo che non ha valori. Può essere utilizzato solo come tipo di ritorno di una funzione. Rappresenta il risultato di una computazione che non viene mai completata. 
+        \end{itemize} 
+    \item Tipi Sequenza: 
+        \begin{itemize}
+            \item Tipo Tupla: raggrupa insieme un insieme di valori di tipo diverso in un unico tipo composito. Ha dimensione fissa che equivale alla dimensione nel momento in cui viene dichiarata. Ad esempio, \texttt{(i32, f64, char)} è una tupla che contiene un intero a 32 bit, un numero in virgola mobile a 64 bit e un carattere.
+            \item Tipo Array: tipo che rappresenta una collezione di elementi dello stesso tipo con una dimensione fissa. Ad esempio, \texttt{[i32; 5]} è un array di cinque interi a 32 bit.
+            \item Tipo Slice: tipo che rappresenta una vista dinamica di una sequenza di elementi di tipo \texttt{T}. La sintassi è \texttt{[T]}. Solitamente viene utilizzata dietro a un tipo Puntatore.
+        \end{itemize}
+        \item Tipi definiti dall'utente: \texttt{struct}, \texttt{enum}, \texttt{union}. Trattati nel dettaglio nelle sezioni successive \ref{sec:structs} e \ref{sec:enums}.
+        \item Tipi Funzione: tipi che rappresentano funzioni e chiusure (\textit{closure}). Una chiusura è una funzione anonima che può catturare variabili dall'ambiente circostante. La sintassi per definire una chiusura è \texttt{|parametri| espressione}.
+        \item Tipi Puntatore: questo tipo comprende tre diversi tipi:
+            \begin{enumerate}
+                \item Tipo Riferimento: vedi sezione \ref{sec:borrowing}. 
+                \item Tipo Raw Pointer: Per un tipo \texttt{T} si hanno \texttt{*const T} e \texttt{*mut T}. Sono puntatori senza garanzie di sicurezza e liveness.
+                \item Tipo Smart Pointer: puntatori che forniscono funzionalità aggiuntive rispetto ai puntatori grezzi come la gestione automatica della memoria. I più comuni sono \texttt{Box<T>}, \texttt{Rc<T>} e \texttt{Arc<T>}. 
+                \item Tipo Puntatore a funzione: dichiarati come \texttt{fn(\&T) -> U} per una funzione che prende un riferimento a \texttt{T} e restituisce un valore di tipo \texttt{U}.
+            \end{enumerate}
+        \item Tipi Trait: 
+        \begin{itemize}
+            \item Tipi Trait Object (vedi sezione \ref{sec:trait_objects}).
+            \item Tipi \texttt{impl Trait}: utilizzati in posizione di ritorno o come parametro di funzione per indicare che la funzione restituisce o accetta un tipo che implementa un certo trait. È una forma alternativa per indicare un tipo generico con un vincolo di trait (vedi sezione \ref{sec:rust_traits}).
+        \end{itemize}
+\end{itemize}
+\section{Struct}
+\label{sec:structs}
+Una \texttt{struct} in Rust è un tipo di dato definito dall'utente che consente di raggruppare insieme più valori correlati in un'unica entità. In particolare, i valori all'interno di una struct possono essere di tipi diversi e, insieme al nome associato al valore, sono chiamati \textit{campi}. Per definire una struct si utilizza la keyword \texttt{struct} come segue:
+\begin{minted}[fontsize=\small]{Rust}
+    struct Book {
+        title: String,
+        pages: u32,
+    }
+\end{minted}
+Per ottenere un comportamento analogo in Java si una classe nel seguente modo:
+\begin{minted}[fontsize=\small]{Java}
+    class Book {
+        String title;
+        int pages;
+    }
+\end{minted}
+Come una struct Rust, una classe Java definisce un tipo di dato che può contenere più valori di tipo diverso, chiamati \textit{campi}. Una struct può essere vista come una versione più leggera di una classe Java, in quanto non supporta l'ereditarietà e non può avere metodi direttamente associati ad essa (i metodi sono definiti separatamente in un blocco \texttt{impl}, come descritto più avanti).
+
+Per creare un'istanza di una struct, si utilizza la seguente sintassi:
+\begin{minted}[fontsize=\small]{Rust}
+    let lotr = Book { 
+        title: String::from("Il Signore degli Anelli"), 
+        pages: 1216 
+    };
+\end{minted}
+In Rust, il costruttore è implicito e si basa sulla sintassi di inizializzazione dei campi. In Java, invece, è necessario definire un costruttore esplicitamente come un metodo d'istanza all'interno della classe:
+\begin{minted}[fontsize=\small]{Java}
+    class Book {
+        String title;
+        int pages;
+
+        // Costruttore
+        public Book(String title, int pages) {
+            this.title = title;
+            this.pages = pages;
+        }
+    }
+\end{minted}
+In particolare, Rust non supporta l'inizializzazione di default dei campi di una struct, quindi è necessario fornire un valore per ogni campo al momento della creazione dell'istanza. Ad esempio:
+\begin{minted}[fontsize=\small]{Rust}
+    let hp = Book { 
+        title: String::from("Harry Potter")
+    };
+\end{minted}
+Questo codice genererebbe un errore di compilazione poiché il campo \texttt{pages} non è stato inizializzato. In Java, invece, se non si fornisce un valore per un campo, esso viene inizializzato con un valore di default (ad esempio, 0 per i tipi numerici e \texttt{null} per i tipi riferimento). Quindi il seguente codice Java sarebbe valido:
+\begin{minted}[fontsize=\small]{Java}
+    // assumendo che esista un costruttore 
+    // public Book(String title)
+    Book book2 = new Book("Harry Potter");
+\end{minted}
+In particolare, poiché Java supporta l'overloading, si possono avere costruttori in overload consentendo l'instanziazione di un oggetto in più modi. Questo è permesso anche grazie alla semantica di auto inizializzazione di Java. In generale, possiamo dire che l'approccio di Rust è molto più rigoroso e sicuro, infatti l'approccio Java può portare a errori di runtime se non si presta attenzione a come vengono inizializzati i campi.
+
+Per accedere ai campi di una struct, e quindi potenzialmente cambiarne lo stato, si utilizza la notazione puntata come segue:
+\begin{minted}[fontsize=\small]{Rust}
+    let lotr_title = lotr.title; 
+    let lotr_pages = lotr.pages;
+\end{minted}
+Da osservare che le variabili in Rust sono immutabili di default, quindi per modificare un campo di una è necessario dichiarare la variabile come mutabile utilizzando la parola chiave \texttt{mut}:
+\begin{minted}[fontsize=\small]{Rust}
+    let mut lotr = Book { 
+        title: String::from("Il Signore degli Anelli"), 
+        pages: 1216 
+    };
+    lotr.pages = 1300; 
+\end{minted}
+In Java, la modifica del valore di una variabile d'istanza di una classe avviene in modo simile, tramite notazione puntata, a patto che chi modifica lo stato dell'oggetto sia autorizzato a farlo: ad esempio il campo è dichiarato \texttt{public} (e non \texttt{final}). 
+
+Nel lavoro svolto in questa tesi, si fa anche ampio utilizzo delle \textit{Unit-Like Structs}: strutture che non hanno campi ma possono essere utili quando si desidera definire un tipo che rappresenta un concetto o un'entità senza la necessità di memorizzare dati specifici. Un esempio di utilizzo di una unit-like struct è il seguente:
+\begin{minted}[fontsize=\small]{Rust}
+    struct MyStruct;
+
+    // Per istanziare una unit-like struct
+    // non sono necessarie parentesi graffe
+    let instance = MyStruct;
+\end{minted}
+\subsection{Funzioni e metodi}
+In Rust, una funzione si definisce con la parola chiave \texttt{fn}, seguita dal nome, da una lista di parametri racchiusi tra parentesi tonde e, se presente, dal tipo di ritorno. Ad esempio:
+\begin{minted}[fontsize=\small]{Rust}
+    fn add(a: i32, b: i32) -> i32 {
+        a + b 
+        // L'ultima espressione senza punto 
+        // e virgola è il valore di ritorno
+    }
+    let result = add(5, 10); // Chiamata della funzione
+    println!("Result: {}", result); // Stampa: Result: 15
+\end{minted}
+La funzione \texttt{add()} prende due parametri di tipo \texttt{i32} e restituisce la loro somma, anch'essa di tipo \texttt{i32}. Il tipo di ritorno è specificato dopo la freccia \texttt{->}.
+
+Così come possiamo definire funzioni "libere", è possibile associare funzioni a una \texttt{struct} (o un \texttt{enum} come vedremo nella prossima sezione) tramite l'uso di un blocco \texttt{impl}. Queste funzioni prendono il nome di \textit{funzioni associate} poiché sono legate a una specifica struct. Le funzioni associate che prendono come primo parametro \texttt{self} \footnote{\texttt{self} rappresenta l'istanza della struct su cui il metodo viene chiamato.} sono chiamate \textit{metodi} e possono essere chiamati tramite notazione puntata. Ad esempio, per la struct \texttt{Book} definita in precedenza, un blocco \texttt{impl} potrebbe apparire come segue:
+\begin{listing}[H]
+    \begin{minted}[fontsize=\small]{Rust}
+    impl Book {
+        fn describe(&self) {
+            println!("\"{}\" has {} pages.", self.title, self.pages);
+        }
+
+        fn is_long(&self) -> bool {
+            self.pages > 300
+        }
+    }
+
+    fn main() {
+        let lotr = Book { 
+            title: String::from("Il Signore degli Anelli"),
+            pages: 1216
+        };
+        lotr.describe(); // Chiamata del metodo
+    }
+    \end{minted}
+    \caption{Esempio di metodo in Rust.}
+    \label{lst:method_example}
+\end{listing}
+Il parametro \texttt{self} può essere passato in diversi modi, a seconda di come si desidera utilizzare l'istanza della struct all'interno del metodo, spesso è passato tramite riferimento per motivi di ownership e borrowing (vedi sezione \ref{sec:borrowing}). In generale, i metodi di una struct definiscono il comportamento associato a un'istanza di quella struct.
+
+Invece, le funzioni associate che non prendono \texttt{self} come primo parametro sono spesso usate come costruttori o funzioni di utilità legate alla struct ma non a una specifica istanza. Ad esempio:
+\begin{listing}[H]
+    \begin{minted}[fontsize=\small]{Rust}
+        impl Book {
+            fn new(title: String, pages: u32) -> Self {
+                Self { title, pages }
+            }
+        }
+    \end{minted}
+    \caption{Esempio di funzione associata in Rust.}
+    \label{lst:associated_function_example}
+\end{listing}
+\texttt{Self} in posizione di tipo di ritorno di una funzione associata si riferisce al tipo della struct stessa, in questo caso \texttt{Point}. Per chiamare questo tipo di funzioni associate, si utilizza la sintassi \texttt{NomeStruct::nome\_funzione()}:
+\begin{minted}[fontsize=\small]{Rust}
+    let book = Book::new(String::from("1984"), 328);
+\end{minted}
+In particolare, nel listato \ref{lst:associated_function_example}, si è utilizzato un forma più breve e leggera per inizializzare i campi della struct. Questa sintassi è utilizzata quando i nomi dei parametri della funzione corrispondono ai nomi dei campi della struct. In questo caso, \texttt{Self \{ title, pages \}} è equivalente a \texttt{Self \{ title: title, pages: pages \}}. Java non mette a disposizione questo tipo di funzionalità, anzi in Java lo sviluppatore è tenuto a disambiguare esplicitamente i nomi dei parametri del costruttore dai nomi delle variabili d'istanza della classe utilizzando la parola chiave \texttt{this}.
+
+In Java, il concetto di funzione associata è superfluo poiché le funzioni sono sempre definite, e quindi associate, all'interno di una classe. I metodi Rust sono analoghi ai metodi di istanza in Java, ossia metodi che appartengono a un'istanza specifica di una classe. Quindi, il listato \ref{lst:method_example} potrebbe essere tradotto in Java come segue:
+\begin{minted}[fontsize=\small]{Java}
+    class Book {
+        
+        ...
+
+        public void describe() {
+            System.out.println("\"" 
+                               + title 
+                               + "\" has " 
+                               + pages 
+                               + " pages.");
+        }
+
+        public boolean isLong() {
+            return pages > 300;
+        }
+    }
+
+    public class Main {
+        public static void main(String[] args) {
+            Book lotr = new Book("Il Signore degli Anelli", 1216);
+            lotr.describe(); // Chiamata del metodo
+        }
+    }
+\end{minted}
+Invece, le funzioni associate senza \texttt{self} in Java sono implementate come metodi statici. I metodi statici appartengono alla classe stessa piuttosto che a un'istanza specifica della classe. Questi sono spesso utilizzati come costruttori alternativi, come è il caso del pattern creazionale \textit{Static Factory Method} \cite{gamma-design-patterns}, o per definire funzioni di utilità che non richiedono l'accesso ai dati di un'istanza specifica della classe. 
+\section{Enum}
+\label{sec:enums}
+Un \texttt{enum} in Rust è un tipo di dato definito dall'utente che consente di rappresentare una variabile che può assumere uno tra un insieme finito di valori, chiamati \textit{varianti}. Un enum Rust è dichiarato utilizzando la parola chiave \texttt{enum} come segue:
+\begin{minted}[fontsize=\small]{Rust}
+    enum Shape {
+        Circle,
+        Rectangle,
+        Triangle,
+        Point,  
+    }
+\end{minted}
+In Java, un enum è dichiarato in maniera analoga:
+\begin{minted}[fontsize=\small]{Java}
+    enum Shape {
+        CIRCLE,
+        RECTANGLE,
+        TRIANGLE,
+        POINT; 
+    }
+\end{minted}
+In entrambi i linguaggi è possibile associare dati alle varianti di un enum. Tuttavia, c'è una differenza sostanziale tra la flessibilità con cui si può eseguire questa associazione.
+\begin{itemize}
+    \item In Java, un enum è classe speciale in cui le varianti sono istanze singleton statiche e finali di quella classe. Questo significa che ogni variante deve essere inizializzata esplicitamente nel momento della sua dichiarazione o all'interno di un blocco \texttt{static {}}. Ad esempio, se volessimo associare un numero di lati a ogni variante dell'enum \texttt{Shape}, in Java potremmo farlo nel seguente modo:
+\begin{minted}[fontsize=\small]{Java}
+    enum Shape {
+        CIRCLE(0), RECTANGLE(4), TRIANGLE(3), POINT(0);
+
+        private int sides;
+
+        private Shape(int sides) {
+            this.sides = sides;
+        }
+    }
+\end{minted}
+    La limitazione di questo approccio è che tutte le varianti dell'enum devono avere lo stesso insieme di dati associati, il che può essere restrittivo in alcuni casi. Ad esempio, se volessimo associare dati diversi a ogni variante, come il raggio per il cerchio, la larghezza e l'altezza per il rettangolo, e i lati per il triangolo, non sarebbe possibile farlo direttamente con gli enum di Java.
+
+    Inoltre, il valore associato a una variante di un enum in Java è immutabile, quindi non può essere cambiato dopo l'inizializzazione, che avviene nel momento della dichiarazione.
+    \item Rust, invece, consente di associare dati diversi, sia in tipo che in numero, a ogni variante, rendendo gli enum Rust molto più flessibili e potenti. Ad esempio, questo codice è possibile in Rust:
+\begin{listing}[H]
+    \begin{minted}[fontsize=\small]{Rust}
+        enum Shape {
+            Circle(f64),               // raggio
+            Rectangle(f64, f64),      // larghezza, altezza
+            Triangle(f64, f64, f64),  // lati
+            Point,  
+        }
+    \end{minted}
+    \caption{Esempio di enum in Rust con varianti che contengono dati.}
+    \label{lst:enum_example}
+\end{listing}
+    In particolare, l'esempio sopra può essere reso più chiaro utilizzando nomi per i campi tramite la seguente sintassi:
+\begin{minted}[fontsize=\small]{Rust}
+    enum Shape {
+        Circle { radius: f64 },
+        Rectangle { width: f64, height: f64 },
+        Triangle { a: f64, b: f64, c: f64 },
+        Point,  
+    }
+\end{minted}
+Inoltre, a differenza di Java, è possibile definire il valore dei dati associati a una variante nel momento della sua istanziazione:
+\begin{minted}[fontsize=\small]{Rust}
+    let circle = Shape::Circle { radius: 5.0 };
+\end{minted}
+\end{itemize}  
+Un'altra differenza molto importante tra gli enum di Java e Rust è il modo in cui si esegue il pattern matching sulle varianti. Per pattern matching si intende la capacità di verificare quale variante di un enum è attualmente in uso e di estrarre i dati associati a quella variante. In Rust, il pattern matching è eseguito tramite la parola chiave \texttt{match}. Ad esempio, considerando il listato \ref{lst:enum_example}, si potrebbe scrivere una funzione per calcolare l'area di una figura geometrica come segue:
+\begin{minted}[fontsize=\small]{Rust}
+    fn area(shape: &Shape) -> f64 {
+        match shape {
+            Shape::Circle(radius) => 3.14 * radius * radius,
+            Shape::Rectangle(width, height) => width * height,
+            Shape::Triangle(a, b, c) => {
+                // Compute area for triangle
+            }
+            Shape::Point => 0.0,
+        }
+    }
+\end{minted}
+In particolare, in Rust, il pattern matching è esaustivo, ossia il compilatore verifica che tutti i casi possibili siano coperti, garantendo così la sicurezza del codice. Ad esempio:
+\begin{minted}[fontsize=\small]{Rust}
+    fn area(shape: &Shape) -> f64 {
+        match shape {
+            Shape::Circle(radius) => 3.14 * radius * radius,
+            Shape::Rectangle(width, height) => width * height,
+            Shape::Point => 0.0,
+        }
+    }
+    // Questo codice non compila perché manca il caso per Triangle
+\end{minted}
+In Java, il pattern matching sugli enum è meno potente e richiede l'uso di costrutti come \texttt{switch}. A differenza di Rust, Java non garantisce che tutti i casi siano coperti, il che può portare a errori di runtime se una variante non viene gestita. Ad esempio:
+\begin{minted}[fontsize=\small]{Java}
+    enum Status {
+        SUCCESS,
+        FAILURE,
+        PENDING
+    }
+
+    public String getStatusMessage(Status status) {
+        switch (status) {
+            case SUCCESS:
+                return "Operation was successful.";
+            case FAILURE:
+                return "Operation failed.";
+            // Manca il caso per PENDING
+            default:
+                return "Unknown status.";
+        }
+    }
+\end{minted}
+Questo codice compila, ma se venisse passato il valore \texttt{PENDING} si verificherebbe un comportamento inatteso: il messaggio di stato restituito sarà \texttt{"Unknown status."}, anche se lo stato in realtà è noto. Inoltre, in Java non è possibile estrarre dati associati a una variante di un enum all'interno di un costrutto \texttt{switch}, a meno di definire metodi aggiuntivi all'interno dell'\texttt{enum}. 
+
+Quindi, si può notare come gli enum di Rust offrano funzionalità molto più potenti e flessibili: è possibile associare dati diversi a ciascuna variante e accedervi direttamente durante il pattern matching. Per ottenere un comportamento simile in Java, sarebbe necessario ricorrere a soluzioni più complesse, ad esempio usando interfacce \texttt{sealed} e \texttt{record}:
+\begin{minted}[fontsize = \small]{Java}
+    sealed interface Shape permits Circle, Rectangle, Triangle, Point {}
+
+    record Circle(double radius) implements Shape {}
+    record Rectangle(double width, double height) implements Shape {}
+    record Triangle(double a, double b, double c) implements Shape {}
+    record Point() implements Shape {}
+
+    public double area(Shape shape) {
+        return switch (shape) {
+            case Circle c -> 3.14 * c.radius() * c.radius();
+            case Rectangle r -> r.width() * r.height();
+            case Triangle t -> {
+                // Compute area for triangle
+            }
+            case Point p -> 0.0;
+        };
+    }
+\end{minted}
+In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni "variante" è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Tuttavia, questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Vale comunque il discorso che in Java il compilatore non garantisce l'esaustività del pattern matching.
+
+Infine, analogamente a quello che succede per le struct, anche gli enum in Rust possono avere metodi associati definiti all'interno di un blocco \texttt{impl}. Ad esempio:
+\begin{minted}[fontsize=\small]{Rust}
+    impl Shape {
+        fn area(&self) -> f64 {
+            match self {
+                /* ... */
+            }
+        }
+    }
+
+    fn main() {
+        let circle = Shape::Circle { radius: 5.0 };
+        println!("Area: {}", circle.area());
+    }
+\end{minted}
+In Java, i metodi associati a un enum sono definiti all'interno della dichiarazione dell'enum stesso come avviene per una qualsiasi classe.

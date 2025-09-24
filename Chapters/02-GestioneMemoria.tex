@@ -211,7 +211,8 @@ Di conseguenza, entrambi i valori (l'originale e la copia) restano validi e util
 Questa distinzione riflette chiaramente la filosofia di Rust nel garantire la sicurezza nell'accesso alla memoria:
 \begin{itemize}
     \item Per i tipi che contengono dati allocati dinamicamente o che possono essere modificati a runtime, Rust usa la semantica del \textit{move}, che impedisce di accedere a un valore dopo che la sua \textit{ownership} è stata trasferita altrove, evitando così potenziali problemi di accesso concorrente e modifiche inattese.
-    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack, solitamente immutabili per definizione (come interi o booleani)\footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.}, Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
+    \item Per i tipi con dimensione fissa e nota a compile time, che risiedono interamente nello stack, solitamente immutabili per definizione (come interi o booleani), Rust utilizza la semantica del \textit{copy}, poiché la copia bit-a-bit è efficiente e non introduce rischi di inconsistenza o accessi errati.
+    %TODO: %\footnote{In Rust le variabili sono immutabili a meno che non si vengano dichiarate con la keyword \texttt{mut}.} Era dopo "...booleani)"
 \end{itemize}
 L'ownership può essere trasferita anche con le funzioni che ritornano un valore. In questo caso, un assegnamento a una variabile di un valore restituito da una funzione comporta il trasferimento dell'ownership dalla funzione alla variabile. Ad esempio:
 \begin{minted}[fontsize=\small]{rust}
@@ -361,14 +362,16 @@ Rust, invece, elimina del tutto l'uso \texttt{null}, prevenendo molti dei proble
 \end{minted}
 L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire una rappresentazione sicura e non ambigua dell'assenza di un valore.
 
-\texttt{Option<T>} è un \texttt{enum} dove \texttt{Some(T)}\footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java è che, poiché in Rust una variabile non può mai assumere il valore \texttt{null},per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Utilizzando la classe \texttt{Person}\footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.} del listato \ref{lst:java-reference}, consideriamo il seguente esempio per mostrare l'importanza di \texttt{Option<T>} in Rust: 
+%TODO: \footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} dopo "... dove Some(T)"
+\texttt{Option<T>} è un \texttt{enum} dove \texttt{Some(T)} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java è che, poiché in Rust una variabile non può mai assumere il valore \texttt{null},per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Utilizzando la classe \texttt{Person}\footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.} del listato \ref{lst:java-reference}, consideriamo il seguente esempio per mostrare l'importanza di \texttt{Option<T>} in Rust: 
 \begin{listing}[h]
     \begin{minted}[fontsize=\small]{java}
     public class PersonRepository{
         private List<Person> people = new ArrayList<>();
 
         public Person findPersonByName(String name) {
-            Objects.requireNonNull(name, "Il nome non può essere null");
+            Objects.requireNonNull(name, 
+                                   "Il nome non può essere null");
             for (Person person : people) {
                 if (person.getName().equals(name)) {
                     return person; // Ritorna la persona trovata
@@ -405,7 +408,7 @@ In Rust, invece, l'unico modo di avere un comportamento equivalente a quello del
         }
     }
 \end{minted}
-Da questo esempio\footnote{\texttt{impl} è un costrutto Rust che consente di implementare metodi per una \texttt{struct}.} si capisce come l'utilizzo di \texttt{Option<T>} renda esplicito il fatto che il metodo può non trovare una persona con il nome specificato. Inoltre, non è necessario verificare se la stringa di input \texttt{name} è \texttt{null}, poiché una variabile Rust non può essere \texttt{null}. Se si prova a passare \texttt{None} al metodo, il compilatore segnalerà un errore.
+Da questo esempio si capisce come l'utilizzo di \texttt{Option<T>} renda esplicito il fatto che il metodo può non trovare una persona con il nome specificato. Inoltre, non è necessario verificare se la stringa di input \texttt{name} è \texttt{null}, poiché una variabile Rust non può essere \texttt{null}. Se si prova a passare \texttt{None} al metodo, il compilatore segnalerà un errore.
 
 Il codice del listato \ref{lst:java-optional} può essere rifattorizzato per avere un comportamento analogo a quello di Rust, utilizzando \texttt{Optional<Person>}:
 \begin{minted}[fontsize=\small]{java}
