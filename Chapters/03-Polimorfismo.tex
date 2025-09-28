@@ -7,7 +7,7 @@ Il polimorfismo è un concetto fondamentale della programmazione. Derivato dal g
     \item Riduce la duplicazione di codice, poiché le operazioni comuni possono essere definite una sola volta e riutilizzate per diversi tipi.
     \item Semplifica la gestione delle estensioni future, poiché nuove funzionalità possono essere aggiunte senza modificare il codice esistente.
 \end{itemize}
-In un linguaggio come Java, orientato agli oggetti, il polimorfismo è una caratteristica centrale e largamente supportata tramite ereditarietà e interfacce. Rust, pur non essendo un linguaggio tradizionalmente orientato agli oggetti, offre un approccio alternativo al polimorfismo, basato su trait (tratto, nel senso di caratteristica) e tipi generici, che permette di ottenere astrazione e flessibilità.
+In un linguaggio come Java, orientato agli oggetti, il polimorfismo è una caratteristica centrale e largamente supportata tramite ereditarietà e interfacce. Rust, pur non essendo un linguaggio tradizionalmente orientato agli oggetti, offre un approccio alternativo al polimorfismo, basato su trait e tipi generici, che permette di ottenere astrazione e flessibilità.
 
 In particolare, quando il codice coinvolge il polimorfismo, sono necessari meccanismi per determinare quale versione specifica di metodo sta venendo effettivamente eseguita. Questo processo prende il nome di \textit{dispatch}. Esistono due forme di dispatch: 
 \begin{itemize}
@@ -20,11 +20,8 @@ Java supporta il polimorfismo attraverso due principali meccanismi: il \textit{s
 
 Il subtyping si basa sul fatto che ci possa essere una relazione tra tipi chiamata \textit{relazione di sottotipo}. Si dice che un tipo \textit{A} è un sottotipo di un tipo \textit{B} quando il contesto richiede un elemento di tipo \textit{B} ma può accettare un elemento di tipo \textit{A}. In Java, la relazione di sottotipo viene implementata attraverso l'ereditarietà e le interfacce. Le classi possono estendere altre classi e implementare interfacce, consentendo agli oggetti di essere trattati come istanze della loro classe base o interfaccia. 
 
-Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo. In particolare, Java supporta:
-\begin{itemize}
-    \item il \textit{bounded parametric polymorphism}, che consente di specificare vincoli sui parametri di tipo.
-    \item il \textit{F-bounded polymorphism} \cite{greenman-effing-bound-polymorphism}, che è la capacità di poter definire vincoli su un tipo generico che dipendono da quel tipo stesso. In altre parole, avere un vincolo di tipo ricorsivo. Ad esempio \texttt{<T extends Comparable<T>}\texttt{>}.
-\end{itemize}
+Il parametric polymorphism permette di assegnare a una parte di codice un tipo generico, utilizzando variabili di tipo al posto di tipi specifici, che poi possono essere istanziate con tipi concreti al momento dell'utilizzo. In particolare, Java supporta l'\textit{F-bounded polymorphism} \cite{greenman-effing-bound-polymorphism}, che è la capacità di poter definire vincoli su un tipo generico che possono anche essere ricorsivi. Ad esempio \texttt{<T extends Comparable<T>}\texttt{>}.
+
 \section{Polimorfismo in Rust}
 In Rust, il polimorfismo è implementato attraverso i concetti di \textit{trait} e i \textit{generics}. I trait sono simili alle interfacce in Java e definiscono un insieme di metodi che un tipo deve implementare per essere considerato conforme a quel trait. I generics consentono di scrivere funzioni e strutture dati che possono operare su tipi diversi senza dover specificare un tipo concreto. Tramite l'uso dei generics si ottiene il \textit{parametric polymorphism}, mentre attraverso i trait si ottiene il \textit{bounded parametric polymorphism}.\footnote{Entrambe le forme di polimorfismo hanno la stessa definizione data in precedenza per Java.}
 
@@ -195,9 +192,9 @@ In questo esempio, \texttt{T} è un tipo generico che deve implementare \texttt{
         /* ... */ 
     }
 \end{minted}
-Si può facilmente notare come il concetto di trait in Rust sia molto simile alle interfacce in Java. Entrambi servono entrambi a garantire che un valore o un oggetto possa essere utilizzato secondo un certo protocollo o insieme di regole, permettendo diverse implementazioni concrete senza essere vincolati a dettagli di implementazione, a differenza di quanto accade con una superclasse Java. Inoltre, in entrambi i costrutti è possibile definire metodi di default. Tuttavia, sono presenti alcune differenze significative:
+Si può facilmente notare come il concetto di trait in Rust sia molto simile alle interfacce in Java. Entrambi servono a garantire che un valore o un oggetto possa essere utilizzato secondo un certo protocollo o insieme di regole, permettendo diverse implementazioni concrete senza essere vincolati a dettagli di implementazione, a differenza di quanto accade con una superclasse Java. Inoltre, in entrambi i costrutti è possibile definire metodi di default. Tuttavia, sono presenti alcune differenze significative:
 \begin{itemize}
-    \item In Rust, un trait non è un tipo concreto, ma un insieme di metodi che un tipo può implementare. In Java, invece, un' interfaccia funge sia da contratto sia da tipo: quando una classe implementa un'interfaccia, è possibile trattare gli oggetti di quella classe come istanze del tipo dell'interfaccia stessa. La differenza principale è, quindi, che in Rust il trait è separato dal tipo concreto, mentre in Java l'interfaccia può essere usata direttamente come tipo del riferimento.
+    \item In Rust, un trait non è un tipo di dato, ma un insieme di metodi che un tipo può implementare. In Java, invece, un' interfaccia funge sia da contratto sia da tipo: quando una classe implementa un'interfaccia, è possibile trattare gli oggetti di quella classe come istanze del tipo dell'interfaccia stessa. La differenza principale è, quindi, che in Rust il trait è separato dal tipo concreto, mentre in Java l'interfaccia può essere usata direttamente come tipo del riferimento.
     \item In Java, le interfacce richiedono che la classe che le implementa abbia metodi con nomi specifici. Questo può creare conflitti: ad esempio, due interfacce potrebbero essere impossibili da implementare contemporaneamente se hanno metodi con lo stesso nome ma tipi di ritorno diversi. Ad esempio:
 \begin{minted} [fontsize=\small] {Java}
     public interface InterfaceA {
@@ -245,7 +242,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
         fn do_something(&self, value: i32) { /* ... */ }
     }
 \end{minted}
-    \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate. Questo consente di estendere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. Ad esempio, consideriamo il caso in cui si vuole estendere il tipo \texttt{String} in Rust. Non possiamo modificare direttamente \texttt{String} perché definito nella standard library, ma possiamo implementarci un trait come:
+    \item In Rust, è possibile implementare traits per tipi esterni, definiti in altri crate \footnote{Un crate è un pacchetto di codice Rust. Simile a un modulo in altri linguaggi.}. Questo consente di estendere il comportamento di tipi che non sono stati definiti nel proprio codice. Questo può essere fatto rimanendo conforme alla \textit{Orphan Rule}: si può implementare un trait per un tipo solo se almeno uno dei due (trait o tipo) è definito nel proprio crate. Ad esempio, consideriamo il caso in cui si vuole estendere il tipo \texttt{String} in Rust. Non possiamo modificare direttamente \texttt{String} perché definito nella standard library, ma possiamo implementarci un trait come:
 \begin{minted} [fontsize=\small] {Rust}
     trait Shout {
         fn shout(&self) -> String;
@@ -266,7 +263,7 @@ Si può facilmente notare come il concetto di trait in Rust sia molto simile all
         println!("{}", s.shout());
     }
 \end{minted}
-    In Java, invece, l'estensione di comportamento è basata su inheritance e method overriding. Questo funziona solo se si vuole estendere una classe esistente (non \texttt{final}). Invece, se si vuole implementare un'interfaccia su una classe esistente, è necessario avere accesso al codice sorgente della classe per modificarla. Se questo non è possibile si deve ricorrere a metodi alternativi come l'utilizzo del pattern strutturale \textit{Adapter} \cite{gamma-design-patterns} come segue:
+    In Java, invece, l'estensione di comportamento è basata su inheritance e method overriding. Questo funziona solo se si vuole estendere una classe esistente (non \texttt{final}). Invece, se si vuole implementare un'interfaccia su una classe esistente è necessario avere accesso al codice sorgente della classe per modificarla. Se questo non è possibile si deve ricorrere a metodi alternativi come l'utilizzo del pattern strutturale \textit{Adapter} \cite{gamma-design-patterns} che permette di ottenere lo stesso comportamento di Rust ma con molto più codice. Ad esempio:
     \begin{minted} [fontsize=\small] {Java}
         // Interfaccia che vogliamo usare 
         // nella nostra applicazione
@@ -385,7 +382,7 @@ Il caso più interessante avviene quando viene eseguita una chiamata di metodo. 
     \item Dispatch statico se il tipo esatto su cui il metodo è chiamato è conosciuto a compile-time.
     \item Dispatch dinamico se il tipo su cui il metodo è chiamato è un \textit{trait object} indiretto (vedi sezione \ref{sec:trait_objects}).
 \end{itemize}
-Quando vengono usati i generics e i trait bounds, il compilatore userà lo static dispatch per risolvere le chiamate ai metodi. In particolare, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato, e quindi la risoluzione avviene a compile time senza la necessità di eseguire alcuna scelta a runtime. Questo processo è noto come \textit{monomorphization} (descritto nel dettaglio nella sezione \ref{sec:generics}). Per mostrare esplicitamente questo comportamento consideriamo il seguente codice:
+Quando vengono usati i generics e i trait bounds, il compilatore userà lo static dispatch per risolvere le chiamate ai metodi. In particolare, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato, e quindi la risoluzione avviene a compile time senza la necessità di eseguire alcuna scelta a runtime. Questo processo è noto come \textit{monomorphization} (descritto nel dettaglio nella sezione \ref{sec:generics}). Per mostrare esplicitamente questo comportamento consideriamo il seguente codice \footnote{L'attributo \texttt{\#[inline(never)]} viene utilizzato per evitare che il compilatore effettui l'inlining delle funzioni durante la compilazione, in modo da poter osservare chiaramente le chiamate di funzione nel codice compilato.}:
 \begin{minted}[fontsize=\small] {Rust}
     trait Drivable {
         fn drive(&self);
@@ -512,7 +509,7 @@ Un trait object è definito come un valore opaco \footnote{Per opaco si intende 
     \centering
     \includegraphics[width=0.8\textwidth]{Figures/vtable.drawio.pdf}
 \end{figure}
-Va notato che la vtable non è generata per il trait in generale, ma per ciascuna combinazione di tipo concreto e trait implementato. Ad esempio, consideriamo l'implementazione del design pattern \textit{Observer} \cite{gamma-design-patterns}: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
+Per mostrare la necessità di utilizzare i trait objects, consideriamo l' implementazione del design pattern \textit{Observer} \cite{gamma-design-patterns}: il \texttt{Subject} deve poter mantenere la collezione degli \texttt{Observer}, i quali vanno trattati in maniera uniforme nonostante possano essere di tipi diversi. Per fare ciò, definiamo il trait \texttt{Observer} e le sue implementazioni:
 \begin{minted}[fontsize=\small]{Rust}
     trait Observer {
         fn update(&self, data: &str);
@@ -558,16 +555,14 @@ Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} c
         }
     }
 \end{minted}
-In questa implementazione, il compilatore genera due vtable separate: una per la coppia \texttt{(ConcreteObserverA, Observer)} e una per la coppia \texttt{(ConcreteObserverB, Observer)}. 
-
-Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime utilizzando la vtable associata al trait object. Questa ricerca avviene con complessità costante. 
+Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime utilizzando la vtable associata al trait object che avviene con complessità costante. 
 \subsection{Java}
-In Java, il meccanismo di risoluzione dei metodi è strettamente legato al concetto di ereditarietà e polimorfismo. Al fine della trattazione, definiamo un metodo virtuale come un metodo di istanza che non può essere sovrascritto. Quindi metodi dichiarati come \texttt{static}, \texttt{final} o \texttt{private} non sono considerati virtuali. Java segue la seguente semantica di invocazione di metodi:
+In Java, il meccanismo di risoluzione dei metodi è strettamente legato al concetto di ereditarietà e polimorfismo. Al fine della trattazione, definiamo un metodo virtuale come un metodo di istanza che può essere sovrascritto. Quindi metodi dichiarati come \texttt{static}, \texttt{final} o \texttt{private} non sono considerati virtuali. Java segue la seguente semantica di invocazione di metodi:
 \begin{itemize}
     \item Se il metodo non è virtuale, la risoluzione avviene completamente a compile-time.
-    \item Se il metodo è virtuale, la scelta dell'implementazione del metodo avviene a runtime. Questo avviene attraverso una vtable in maniera simile a Rust. Anche in questo caso di ottiene la selezione del metodo con complessità costante. 
+    \item Se il metodo è virtuale, la scelta dell'implementazione del metodo avviene a runtime. Questo avviene attraverso una vtable in maniera simile a Rust. Anche in questo caso si ottiene la selezione del metodo con complessità costante.
 \end{itemize} 
-In Java, tutte le chiamate a metodi non virtuali sono risolte a compile-time in maniera simile a come Rust risolve le chiamate di funzione. Questo significa che il compilatore sa esattamente quale metodo chiamare e non è necessario alcun meccanismo di dispatch a runtime. In particolare, per ottenere il comportamento di una funzione Rust si utilizza la keyword static che permette di definire metodi che appartengono alla classe stessa piuttosto che a una specifica istanza della classe. Ad esempio, considerando il listato \ref{lst:rust_function_call}, l'equivalente in Java sarebbe:
+In Java, tutte le chiamate a metodi non virtuali sono risolte a compile-time in maniera simile a come Rust risolve le chiamate di funzione. Questo significa che il compilatore sa esattamente quale metodo chiamare e non è necessario alcun meccanismo di dispatch a runtime. In particolare, per ottenere il comportamento di una funzione Rust si utilizza la keyword \texttt{static} che permette di definire metodi che appartengono alla classe stessa piuttosto che a una specifica istanza della classe. Ad esempio, considerando il listato \ref{lst:rust_function_call}, l'equivalente in Java sarebbe:
 \begin{minted}[fontsize=\small]{Java}
     public class Main {
         public static int plusOne(int x) {
@@ -580,7 +575,119 @@ In Java, tutte le chiamate a metodi non virtuali sono risolte a compile-time in 
         }
     }
 \end{minted}
-Il caso più interessante è quello delle chiamate a metodi virtuali. Java mette a disposizione due meccanismi linguistici per ottenere metodi polimorfi:
+Il caso più interessante è quello delle chiamate a metodi virtuali. Un metodo virtuale può essere sovrascritto in una sottoclasse per fornire una nuova implementazione, si parla di \textit{overriding}. In particolare, affinché avvenga l'overriding, si devono realizzare due condizioni:
+\begin{itemize}
+    \item Il metodo della sottoclasse deve avere lo stesso nome del metodo della superclasse.
+    \item Il metodo della sottoclasse deve avere gli stessi parametri, cioè lo stesso numero, tipo e ordine degli argomenti; il tipo di ritorno deve essere lo stesso o un sottotipo (covarianza del tipo di ritorno).
+\end{itemize}
+In generale, il compilatore Java vede solo il riferimento statico di una variabile, ma non vede il tipo effettivo dell'oggetto a cui punta: questa informazione diventa disponibile solo durante l'esecuzione. Quando un metodo virtuale viene chiamato, l'implementazione del metodo da utilizzare è determinata a runtime in base al tipo effettivo su cui il metodo viene chiamato e sulla firma del metodo. Il \textit{Dynamic Method Lookup} è il processo tramite cui la JVM determina quale implementazione del metodo chiamare per una determinata firma. Ad esempio:
+\begin{minted}[fontsize=\small]{Java}
+    class Vehicle {
+        public void start() {
+            System.out.println("Vehicle is starting");
+        }
+    }
+    class Car extends Vehicle {
+        @Override
+        public void start() {
+            System.out.println("Car is starting");
+        }
+    }
+
+    class Motorcycle extends Vehicle {
+        @Override
+        public void start() {
+            System.out.println("Motorcycle is starting");
+        }
+    }
+
+    public static void main(String[] args) {
+        Vehicle[] vehicles = {new Car(), new Motorcycle()};
+        for (Vehicle v : vehicles) {
+            v.start(); // Chiamata a metodo virtuale
+        }
+    }
+\end{minted}
+L'invocazione di \texttt{start()} è risolta a runtime tramite dynamic method lookup, in base al tipo effettivo dell'oggetto a cui il riferimento \texttt{v} punta. Quindi l'esecuzione del metodo \texttt{main} produce il seguente output:
+\begin{verbatim}
+    Car is starting
+    Motorcycle is starting
+\end{verbatim}
+In particolare, se un metodo virtuale non viene sovrascritto in una sottoclasse, la chiamata al metodo utilizza l'implementazione della superclasse. Questo viene ripetuto ricorsivamente lungo la gerarchia delle classi fino a trovare un'implementazione del metodo. 
+
+Java offre anche un meccanismo di polimorfismo statico tramite il concetto di \textit{Method Overloading}, ossia la definizione di più metodi con lo stesso nome ma firme diverse (diverso numero o tipo di parametri) all'interno di una classe. La risoluzione della chiamata a un metodo in overload avviene a compile-time in base al tipo statico sia dell'oggetto su cui viene chiamato, che degli argomenti con cui il metodo viene chiamato. Ad esempio:
+\begin{minted}[fontsize=\small]{Java}
+    public class Calculator {
+        public int add(int a, int b) {
+            return a + b;
+        }
+
+        public double add(double a, double b, double c) {
+            return a + b + c;
+        }
+    }
+
+    public static void main(String[] args) {
+        Calculator calc = new Calculator();
+
+        // Chiama add(int, int)
+        System.out.println(calc.add(2, 3));  
+
+        // Chiama add(double, double, double)
+        System.out.println(calc.add(1.5, 2.5, 3.5)); 
+    }
+\end{minted}
+Rust non supporta l'overloading dei metodi nel senso di Java, però è possibile avere metodi con lo stesso nome, volendo anche la stessa firma, per uno stesso tipo tramite l'uso di blocchi \texttt{impl} nel seguente modo:
+\begin{minted}[fontsize=\small]{Rust}
+    struct Calculator;
+
+    trait Adder {
+        fn add(&self, a: i32, b: i32) -> i32;
+    }
+
+    impl Calculator {
+        fn add(&self, a: i32, b: i32) -> i32 {
+            a + b
+        }
+    }
+
+    impl Adder for Calculator {
+        fn add(&self, a: i32, b: i32) -> i32 {
+            a + b
+        }
+    }
+\end{minted}
+Se si crea un'istanza di \texttt{Calculator} e si chiama il metodo \texttt{add}:
+\begin{minted}[fontsize=\small]{Rust}
+    fn main() {
+        let calc = Calculator;
+        let result = calc.add(2, 3);
+        println!("Result: {}", result); // Chiama Calculator::add
+    }
+\end{minted}
+Il metodo chiamato è quello definito direttamente su \texttt{Calculator}, poiché il compilatore dà priorità ai metodi innati della struct, ossia quelli definiti nel blocco \texttt{impl} della struct stessa, rispetto ai metodi forniti da un trait implementato dalla struct. In generale, l'algoritmo di risoluzione è molto più complesso e possono verificarsi casi di ambiguità più sofisticati rispetto all'esempio appena visto, in cui il compilatore non riesce a determinare quale metodo chiamare. In questi casi, si deve sempre ricorrere alla fully qualified syntax \footnote{La sintassi per la fully qualified syntax è \texttt{<Type as Trait>::method(\&received, args...)}} per risolvere l'ambiguità. Anche in Java si possono verificare ambiguità nel caso di overloading, ad esempio:
+\begin{minted}[fontsize=\small]{Java}
+    public interface A {}
+
+    public interface B {}
+
+    public class C implements A, B {}
+
+    public class D {
+
+        public void method(A a) { /* ... */ }
+        public void method(B b) { /* ... */ }
+
+        public static void main(String[] args) {
+            // Errore di compilazione per ambiguità
+            new D().method(new C());
+        }
+
+    }
+\end{minted}
+In questo caso, la chiamata a \texttt{method(new C())} genera un errore di compilazione per ambiguità, poiché \texttt{C} implementa sia \texttt{A} che \texttt{B}, e quindi non è chiaro quale versione di \texttt{method} debba essere chiamata. Per risolvere l'ambiguità, si può utilizzare un cast esplicito oppure modificare il codice per evitare la situazione ambigua, ad esempio definendo un nuovo metodo \texttt{method(C c)}.
+\begin{comment}
+Java mette a disposizione due meccanismi linguistici per ottenere metodi polimorfi:
 \begin{itemize}
     \item \textit{Method Overloading}, che consente di definire più metodi con lo stesso nome ma firme diverse (diverso numero o tipo di parametri). 
     \item \textit{Method Overriding}, che consente a una sottoclasse di fornire una nuova implementazione di un metodo ereditato dalla superclasse. 
@@ -588,6 +695,8 @@ Il caso più interessante è quello delle chiamate a metodi virtuali. Java mette
 L'overloading è un meccanismo statico, questo significa che la firma del metodo da chiamare è scelta in fase di compilazione in base al tipo statico sia dell'oggetto su cui viene chiamato, che degli argomenti con cui il metodo viene chiamato.
 
 L'overriding, invece, è un meccanismo dinamico: la scelta del metodo avviene a runtime in base al tipo effettivo dell'oggetto su cui il metodo viene chiamato. Questo permette di ottenere il comportamento polimorfo tipico della programmazione orientata agli oggetti. 
+\end{comment}
+
 \section{Estensione del comportamento in Java e Rust}
 \label{sec:extending_behavior}
 Considerando quanto detto nelle sezioni precedenti, in particolare le sezioni \ref{sec:structs} e \ref{sec:rust_traits}, si può notare una differenza sostanziale tra Java e Rust: in Java, una classe definisce tre diversi elementi:
@@ -596,7 +705,7 @@ Considerando quanto detto nelle sezioni precedenti, in particolare le sezioni \r
     \item Il comportamento attraverso i metodi.
     \item Il tipo degli oggetti attraverso la gerarchia di classi e interfacce.
 \end{itemize}
-questo è molto diverso con quello che accade in Rust in cui questi tre elementi sono rappresentati nel seguente modo:
+questo è molto diverso da quello che accade in Rust in cui questi tre elementi sono rappresentati nel seguente modo:
 \begin{itemize}
     \item Lo stato e il tipo degli oggetti è definito dalle \texttt{struct}.
     \item Il comportamento è definito all'interno di un blocco \texttt{impl} che può essere associato a una \texttt{struct} o a un \texttt{trait}.

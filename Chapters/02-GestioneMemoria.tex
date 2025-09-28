@@ -254,7 +254,7 @@ Quindi, se volessimo passare un valore a una funzione e riutilizzarlo dopo la ch
     
     Inoltre, può assumere il valore \texttt{null}, ossia non puntare a nessun oggetto in memoria. Questo ha gravi ripercussioni sulla sicurezza del programma, poiché l'accesso a un riferimento \texttt{null} può causare un \texttt{NullPointerException} a run-time. 
     
-    Lo stesso creatore della nozione di riferimento \texttt{null}, Tony Hoare, lo ha definito "billion dollar mistake" \cite{hoare-null-reference}, a causa dei costi che le aziende devono, e dovranno, sostenere per bug e vulnerabilità dovuti a \texttt{null}.
+    Lo stesso creatore della nozione di riferimento \texttt{null}, Tony Hoare, lo ha definito ``billion dollar mistake'' \cite{hoare-null-reference}, a causa dei costi che le aziende devono, e dovranno, sostenere per bug e vulnerabilità dovuti a \texttt{null}.
     \item In Rust, un riferimento è anch'esso l'indirizzo di memoria di un valore (mutabile o immutabile). Tuttavia, a differenza di Java, un riferimento in Rust non può essere \texttt{null}. Il compilatore di Rust garantisce che ogni riferimento punti sempre a un valore valido di un tipo specifico per tutta la durata della sua esistenza. Questo dà importanti garanzie di sicurezza, poiché elimina la possibilità di avere errori a run-time legati a riferimenti nulli.
     %TODO: inserire come rust gestisce l'assenza di valore 
 \end{itemize}
@@ -332,7 +332,7 @@ In Java il problema dei dangling pointer è quasi inesistente, poiché i riferim
         }
     }
 \end{minted}
-Questo codice compila e non genera errori a run-time poiché in Java si ha un livello di indirezione in più: \text{r1} in Rust è l'indirizzo di memoria del valore "2" nel \texttt{vec}, mentre in Java è l'indirizzo di memoria dell'oggetto \texttt{Integer} che contiene il valore "2". Quindi se l'\texttt{ArrayList} venisse ridimensionato e allocato in un area di memoria diversa, ciò che viene copiato sono i riferimenti agli oggetti, non gli oggetti stessi, quindi la variabile \texttt{r1} è ancora valida perché l'oggetto a cui si riferisce non ha cambiato posizione in memoria (vedi figura \ref{fig:bor3}). 
+Questo codice compila e non genera errori a run-time poiché in Java si ha un livello di indirezione in più: \text{r1} in Rust è l'indirizzo di memoria del valore "2" nel \texttt{vec}, mentre in Java è l'indirizzo di memoria dell'oggetto \texttt{Integer} che contiene il valore ``2''. Quindi se l'\texttt{ArrayList} venisse ridimensionato e allocato in un area di memoria diversa, ciò che viene copiato sono i riferimenti agli oggetti, non gli oggetti stessi, quindi la variabile \texttt{r1} è ancora valida perché l'oggetto a cui si riferisce non ha cambiato posizione in memoria (vedi figura \ref{fig:bor3}). 
 \begin{figure}[H]
     \centering
     \includegraphics[width = \textwidth]{Figures/bor3.drawio.pdf}

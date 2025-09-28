@@ -20,7 +20,7 @@ The above points will be further expanded in the following chapters, so only a g
 
 It is customary to conclude the Introduction with a summary of the content of the rest of the thesis. One or two sentences are enough for each chapter.
 \end{comment}
-In questo capitolo vengono introdotti i concetti fondamentali per la comprensione del lavoro svolto in questa tesi. In particolare, verrà fornita una panoramica sui tipi di dato e sulla sintassi fondamentale di Rust, eseguendo un confronto con Java. 
+In questo capitolo vengono introdotti i concetti fondamentali per la comprensione del lavoro svolto in questa tesi. In particolare, verrà fornita una panoramica sui tipi e sulla sintassi fondamentale di Rust, eseguendo un confronto con Java. 
 \section{Tipi}
 Sia Java che Rust sono linguaggi \textit{statically typed} (staticamente tipati), il che significa che ogni variabile ha un tipo conosciuto a compile time. Inoltre, sono anche \textit{strongly typed} (fortemente tipati), ossia che il type system del linguaggio applica rigorosamente regole di tipo, impedendo operazioni tra tipi incompatibili e limitando le operazioni che possono essere eseguite su un dato tipo. Questi concetti sono fondamentali per prevenire errori di tipo a runtime.
 
@@ -65,7 +65,7 @@ In Rust sono presenti i seguenti tipi di tipi:
                 \item Tipo Smart Pointer: puntatori che forniscono funzionalità aggiuntive rispetto ai puntatori grezzi come la gestione automatica della memoria. I più comuni sono \texttt{Box<T>}, \texttt{Rc<T>} e \texttt{Arc<T>}. 
                 \item Tipo Puntatore a funzione: dichiarati come \texttt{fn(\&T) -> U} per una funzione che prende un riferimento a \texttt{T} e restituisce un valore di tipo \texttt{U}.
             \end{enumerate}
-        \item Tipi Trait: 
+        \item Tipi Trait (tratto, nel senso di caratteristica): 
         \begin{itemize}
             \item Tipi Trait Object (vedi sezione \ref{sec:trait_objects}).
             \item Tipi \texttt{impl Trait}: utilizzati in posizione di ritorno o come parametro di funzione per indicare che la funzione restituisce o accetta un tipo che implementa un certo trait. È una forma alternativa per indicare un tipo generico con un vincolo di trait (vedi sezione \ref{sec:rust_traits}).
@@ -80,7 +80,7 @@ Una \texttt{struct} in Rust è un tipo di dato definito dall'utente che consente
         pages: u32,
     }
 \end{minted}
-Per ottenere un comportamento analogo in Java si una classe nel seguente modo:
+Per ottenere un comportamento analogo in Java si definisce una classe nel seguente modo:
 \begin{minted}[fontsize=\small]{Java}
     class Book {
         String title;
@@ -109,6 +109,10 @@ In Rust, il costruttore è implicito e si basa sulla sintassi di inizializzazion
         }
     }
 \end{minted}
+e successivamente si può creare un'istanza della classe utilizzando la keyword \texttt{new}:
+\begin{minted}[fontsize=\small]{Java}
+    Book lotr = new Book("Il Signore degli Anelli", 1216);
+\end{minted}
 In particolare, Rust non supporta l'inizializzazione di default dei campi di una struct, quindi è necessario fornire un valore per ogni campo al momento della creazione dell'istanza. Ad esempio:
 \begin{minted}[fontsize=\small]{Rust}
     let hp = Book { 
@@ -136,7 +140,7 @@ Da osservare che le variabili in Rust sono immutabili di default, quindi per mod
     };
     lotr.pages = 1300; 
 \end{minted}
-In Java, la modifica del valore di una variabile d'istanza di una classe avviene in modo simile, tramite notazione puntata, a patto che chi modifica lo stato dell'oggetto sia autorizzato a farlo: ad esempio il campo è dichiarato \texttt{public} (e non \texttt{final}). 
+In Java, la modifica del valore di una variabile d'istanza di una classe avviene in modo simile, tramite notazione puntata, a patto che chi modifica lo stato dell'oggetto sia autorizzato a farlo: ad esempio il campo è dichiarato \texttt{public} (e non \texttt{final}) oppure viene fornite un metodo della classe che consente di modificare il campo.
 
 Nel lavoro svolto in questa tesi, si fa anche ampio utilizzo delle \textit{Unit-Like Structs}: strutture che non hanno campi ma possono essere utili quando si desidera definire un tipo che rappresenta un concetto o un'entità senza la necessità di memorizzare dati specifici. Un esempio di utilizzo di una unit-like struct è il seguente:
 \begin{minted}[fontsize=\small]{Rust}
@@ -159,8 +163,8 @@ In Rust, una funzione si definisce con la parola chiave \texttt{fn}, seguita dal
 \end{minted}
 La funzione \texttt{add()} prende due parametri di tipo \texttt{i32} e restituisce la loro somma, anch'essa di tipo \texttt{i32}. Il tipo di ritorno è specificato dopo la freccia \texttt{->}.
 
-Così come possiamo definire funzioni "libere", è possibile associare funzioni a una \texttt{struct} (o un \texttt{enum} come vedremo nella prossima sezione) tramite l'uso di un blocco \texttt{impl}. Queste funzioni prendono il nome di \textit{funzioni associate} poiché sono legate a una specifica struct. Le funzioni associate che prendono come primo parametro \texttt{self} \footnote{\texttt{self} rappresenta l'istanza della struct su cui il metodo viene chiamato.} sono chiamate \textit{metodi} e possono essere chiamati tramite notazione puntata. Ad esempio, per la struct \texttt{Book} definita in precedenza, un blocco \texttt{impl} potrebbe apparire come segue:
-\begin{listing}[H]
+Così come possiamo definire funzioni ``libere'', è possibile associare funzioni a una \texttt{struct} (o un \texttt{enum} come vedremo nella prossima sezione) tramite l'uso di un blocco \texttt{impl}. Queste funzioni prendono il nome di \textit{funzioni associate} poiché sono legate a una specifica struct. Le funzioni associate che prendono come primo parametro \texttt{self} sono chiamate \textit{metodi} e possono essere chiamati tramite notazione puntata. \texttt{Self} è una keyword Rust che rappresenta l'istanza della struct su cui il metodo viene chiamato. Ad esempio, per la struct \texttt{Book} definita in precedenza, un blocco \texttt{impl} potrebbe apparire come nel listato \ref{lst:method_example}.
+\begin{listing}
     \begin{minted}[fontsize=\small]{Rust}
     impl Book {
         fn describe(&self) {
@@ -183,7 +187,8 @@ Così come possiamo definire funzioni "libere", è possibile associare funzioni 
     \caption{Esempio di metodo in Rust.}
     \label{lst:method_example}
 \end{listing}
-Il parametro \texttt{self} può essere passato in diversi modi, a seconda di come si desidera utilizzare l'istanza della struct all'interno del metodo, spesso è passato tramite riferimento per motivi di ownership e borrowing (vedi sezione \ref{sec:borrowing}). In generale, i metodi di una struct definiscono il comportamento associato a un'istanza di quella struct.
+
+Il parametro \texttt{self} può essere passato in diversi modi, a seconda di come si desidera utilizzare l'istanza della struct all'interno del metodo, spesso è passato tramite riferimento per motivi di ownership e borrowing (vedi sezione \ref{sec:borrowing}). In Java, esiste un concetto simile a \texttt{self} che è \texttt{this}: un riferimento implicito all'istanza corrente della classe. A differenza di \texttt{self}, \texttt{this} è sempre disponibile e non è necessario dichiararlo esplicitamente. In generale, i metodi di una struct definiscono il comportamento associato a un'istanza di quella struct.
 
 Invece, le funzioni associate che non prendono \texttt{self} come primo parametro sono spesso usate come costruttori o funzioni di utilità legate alla struct ma non a una specifica istanza. Ad esempio:
 \begin{listing}[H]
@@ -203,7 +208,8 @@ Invece, le funzioni associate che non prendono \texttt{self} come primo parametr
 \end{minted}
 In particolare, nel listato \ref{lst:associated_function_example}, si è utilizzato un forma più breve e leggera per inizializzare i campi della struct. Questa sintassi è utilizzata quando i nomi dei parametri della funzione corrispondono ai nomi dei campi della struct. In questo caso, \texttt{Self \{ title, pages \}} è equivalente a \texttt{Self \{ title: title, pages: pages \}}. Java non mette a disposizione questo tipo di funzionalità, anzi in Java lo sviluppatore è tenuto a disambiguare esplicitamente i nomi dei parametri del costruttore dai nomi delle variabili d'istanza della classe utilizzando la parola chiave \texttt{this}.
 
-In Java, il concetto di funzione associata è superfluo poiché le funzioni sono sempre definite, e quindi associate, all'interno di una classe. I metodi Rust sono analoghi ai metodi di istanza in Java, ossia metodi che appartengono a un'istanza specifica di una classe. Quindi, il listato \ref{lst:method_example} potrebbe essere tradotto in Java come segue:
+In Java, il concetto di funzione associata è superfluo poiché le funzioni sono sempre definite, e quindi associate, all'interno di una classe. I metodi Rust sono analoghi ai metodi di istanza in Java, ossia metodi che appartengono a un'istanza specifica di una classe. Quindi, il listato \ref{lst:method_example} potrebbe essere tradotto in Java con il codice riportato nel listato \ref{lst:java_method_example}.
+\begin{listing}
 \begin{minted}[fontsize=\small]{Java}
     class Book {
         
@@ -229,7 +235,11 @@ In Java, il concetto di funzione associata è superfluo poiché le funzioni sono
         }
     }
 \end{minted}
-Invece, le funzioni associate senza \texttt{self} in Java sono implementate come metodi statici. I metodi statici appartengono alla classe stessa piuttosto che a un'istanza specifica della classe. Questi sono spesso utilizzati come costruttori alternativi, come è il caso del pattern creazionale \textit{Static Factory Method} \cite{gamma-design-patterns}, o per definire funzioni di utilità che non richiedono l'accesso ai dati di un'istanza specifica della classe. 
+    \caption{Listato \ref{lst:method_example} in Java.}
+    \label{lst:java_method_example}
+\end{listing}
+
+Invece, le funzioni ``libere'' in Java sono implementate come metodi statici. I metodi statici appartengono alla classe stessa piuttosto che a un'istanza specifica della classe. Questi sono spesso utilizzati come costruttori alternativi, come è il caso del pattern creazionale \textit{Static Factory Methods} \cite{gamma-design-patterns}, o per definire funzioni di utilità che non richiedono l'accesso ai dati di un'istanza specifica della classe. 
 \section{Enum}
 \label{sec:enums}
 Un \texttt{enum} in Rust è un tipo di dato definito dall'utente che consente di rappresentare una variabile che può assumere uno tra un insieme finito di valori, chiamati \textit{varianti}. Un enum Rust è dichiarato utilizzando la parola chiave \texttt{enum} come segue:
@@ -360,7 +370,7 @@ Quindi, si può notare come gli enum di Rust offrano funzionalità molto più po
         };
     }
 \end{minted}
-In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni "variante" è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Tuttavia, questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Vale comunque il discorso che in Java il compilatore non garantisce l'esaustività del pattern matching.
+In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni ``variante'' è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Tuttavia, questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Tuttavia, in questo caso, Java garantisce l'esaustività del pattern matching grazie all'uso di interfacce \texttt{sealed}.
 
 Infine, analogamente a quello che succede per le struct, anche gli enum in Rust possono avere metodi associati definiti all'interno di un blocco \texttt{impl}. Ad esempio:
 \begin{minted}[fontsize=\small]{Rust}
