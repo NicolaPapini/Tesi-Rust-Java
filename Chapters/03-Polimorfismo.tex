@@ -555,7 +555,7 @@ Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} c
         }
     }
 \end{minted}
-Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime utilizzando la vtable associata al trait object che avviene con complessità costante. 
+Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime tramite la vtable associata al trait object, con un’operazione a complessità costante.
 \subsection{Java}
 In Java, il meccanismo di risoluzione dei metodi è strettamente legato al concetto di ereditarietà e polimorfismo. Al fine della trattazione, definiamo un metodo virtuale come un metodo di istanza che può essere sovrascritto. Quindi metodi dichiarati come \texttt{static}, \texttt{final} o \texttt{private} non sono considerati virtuali. Java segue la seguente semantica di invocazione di metodi:
 \begin{itemize}
@@ -665,7 +665,7 @@ Se si crea un'istanza di \texttt{Calculator} e si chiama il metodo \texttt{add}:
         println!("Result: {}", result); // Chiama Calculator::add
     }
 \end{minted}
-Il metodo chiamato è quello definito direttamente su \texttt{Calculator}, poiché il compilatore dà priorità ai metodi innati della struct, ossia quelli definiti nel blocco \texttt{impl} della struct stessa, rispetto ai metodi forniti da un trait implementato dalla struct. In generale, l'algoritmo di risoluzione è molto più complesso e possono verificarsi casi di ambiguità più sofisticati rispetto all'esempio appena visto, in cui il compilatore non riesce a determinare quale metodo chiamare. In questi casi, si deve sempre ricorrere alla fully qualified syntax \footnote{La sintassi per la fully qualified syntax è \texttt{<Type as Trait>::method(\&received, args...)}} per risolvere l'ambiguità. Anche in Java si possono verificare ambiguità nel caso di overloading, ad esempio:
+Il metodo chiamato è quello definito direttamente su \texttt{Calculator}, poiché il compilatore dà priorità ai metodi innati della struct, ossia quelli definiti nel blocco \texttt{impl} della struct stessa, rispetto ai metodi forniti da un trait implementato dalla struct. In generale, l'algoritmo di risoluzione è molto più complesso e possono verificarsi casi di ambiguità più sofisticati rispetto all'esempio appena visto, in cui il compilatore non riesce a determinare quale metodo chiamare. In questi casi, si deve sempre ricorrere alla fully qualified syntax \footnote{La sintassi per la fully qualified syntax è \texttt{<Type as Trait>::method(\&received, args...)}.} per risolvere l'ambiguità. Anche in Java si possono verificare ambiguità nel caso di overloading, ad esempio:
 \begin{minted}[fontsize=\small]{Java}
     public interface A {}
 
@@ -710,7 +710,7 @@ questo è molto diverso da quello che accade in Rust in cui questi tre elementi 
     \item Lo stato e il tipo degli oggetti è definito dalle \texttt{struct}.
     \item Il comportamento è definito all'interno di un blocco \texttt{impl} che può essere associato a una \texttt{struct} o a un \texttt{trait}.
 \end{itemize}
-Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità, la classe, mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. Ad esempio, consideriamo il seguente codice Java:
+Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità, la classe, mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. Ad esempio, consideriamo il seguente codice Java preso dal libro "Core Java for the Impatient" \cite{horstmann-java-impatient}:
 \begin{minted}[fontsize = \small]{Java}
     class Employee {
         private double salary;
@@ -720,7 +720,7 @@ Quindi, in Java, stato e comportamento sono definiti insieme in una singola enti
         }
     }
 \end{minted}
-Supponiamo di voler estendere il comportamento della classe \texttt{Employee} per aggiungere la capacità di calcolare un bonus. In Java, questo può essere fatto creando una sottoclasse:
+Supponiamo di voler implementare una classe \texttt{Manager} che estende \texttt{Employee} per aggiungere un bonus e, quindi, modificare il comportamento del metodo \texttt{getSalary()} per tener conto di questo bonus. In Java, questo può essere fatto creando una sottoclasse:
 \begin{minted}[fontsize = \small]{Java}
     class Manager extends Employee {
         private double bonusPercentage;
@@ -731,7 +731,7 @@ Supponiamo di voler estendere il comportamento della classe \texttt{Employee} pe
         }
     }
 \end{minted}
-Si può notare che tramite ereditarietà e overriding, la sottoclasse \texttt{Manager} ha ereditato sia lo stato (campo \texttt{salary}) che il comportamento (metodo \texttt{getSalary()}) dalla superclasse \texttt{Employee}, e ha sovrascritto il metodo \texttt{getSalary()} per fornire un nuovo comportamento specifico per i manager. In Rust, per estendere il comportamento di \texttt{Employee}, si può utilizzare la composizione:
+Si può notare che tramite ereditarietà e overriding, la sottoclasse \texttt{Manager} ha ereditato sia lo stato (campo \texttt{salary}) che il comportamento (metodo \texttt{getSalary()}) dalla superclasse \texttt{Employee}, e ha sovrascritto il metodo \texttt{getSalary()} per fornire un nuovo comportamento specifico per i manager. In Rust, si può utilizzare la composizione:
 \begin{minted}[fontsize = \small]{Rust}
     struct Employee {
         salary: f64,
