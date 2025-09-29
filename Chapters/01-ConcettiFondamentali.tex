@@ -109,7 +109,7 @@ In Rust, il costruttore è implicito e si basa sulla sintassi di inizializzazion
         }
     }
 \end{minted}
-e successivamente si può creare un'istanza della classe utilizzando la keyword \texttt{new}:
+Per creare un'istanza della classe si utilizza la keyword \texttt{new}:
 \begin{minted}[fontsize=\small]{Java}
     Book lotr = new Book("Il Signore degli Anelli", 1216);
 \end{minted}
@@ -132,7 +132,7 @@ Per accedere ai campi di una struct, e quindi potenzialmente cambiarne lo stato,
     let lotr_title = lotr.title; 
     let lotr_pages = lotr.pages;
 \end{minted}
-Da osservare che le variabili in Rust sono immutabili di default, quindi per modificare un campo di una è necessario dichiarare la variabile come mutabile utilizzando la parola chiave \texttt{mut}:
+Da osservare che le variabili in Rust sono immutabili di default, quindi per modificare un campo di una variabile è necessario dichiarare la variabile come mutabile utilizzando la parola chiave \texttt{mut}:
 \begin{minted}[fontsize=\small]{Rust}
     let mut lotr = Book { 
         title: String::from("Il Signore degli Anelli"), 
@@ -140,7 +140,7 @@ Da osservare che le variabili in Rust sono immutabili di default, quindi per mod
     };
     lotr.pages = 1300; 
 \end{minted}
-In Java, la modifica del valore di una variabile d'istanza di una classe avviene in modo simile, tramite notazione puntata, a patto che chi modifica lo stato dell'oggetto sia autorizzato a farlo: ad esempio il campo è dichiarato \texttt{public} (e non \texttt{final}) oppure viene fornite un metodo della classe che consente di modificare il campo.
+In Java, la modifica del valore di una variabile d'istanza di una classe avviene in modo simile, tramite notazione puntata, a patto che chi modifica lo stato dell'oggetto sia autorizzato a farlo: ad esempio il campo è dichiarato \texttt{public} (e non \texttt{final}) oppure viene fornito un metodo della classe che consente di modificare il campo.
 
 Nel lavoro svolto in questa tesi, si fa anche ampio utilizzo delle \textit{Unit-Like Structs}: strutture che non hanno campi ma possono essere utili quando si desidera definire un tipo che rappresenta un concetto o un'entità senza la necessità di memorizzare dati specifici. Un esempio di utilizzo di una unit-like struct è il seguente:
 \begin{minted}[fontsize=\small]{Rust}
