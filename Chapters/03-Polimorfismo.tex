@@ -653,7 +653,8 @@ Rust non supporta l'overloading dei metodi nel senso di Java, però è possibile
 
     impl Adder for Calculator {
         fn add(&self, a: i32, b: i32) -> i32 {
-            a + b
+            // Implementazione diversa per il trait
+            // ad esempio con operazioni bitwise            
         }
     }
 \end{minted}
