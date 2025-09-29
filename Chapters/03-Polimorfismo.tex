@@ -555,7 +555,7 @@ Ora, definiamo il \texttt{Subject} che mantiene una lista di \texttt{Observer} c
         }
     }
 \end{minted}
-Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime tramite la vtable associata al trait object, con un’operazione a complessità costante.
+Quando si usa un trait object, Rust deve utilizzare il dynamic dispatch: il compilatore non conosce tutti i tipi che possono essere utilizzati nel codice che sta utilizzando il trait object, quindi non sa quale metodo implementato su quale tipo chiamare. La risoluzione della chiamata avviene a runtime tramite la vtable associata al trait object, con un'operazione a complessità costante.
 \subsection{Java}
 In Java, il meccanismo di risoluzione dei metodi è strettamente legato al concetto di ereditarietà e polimorfismo. Al fine della trattazione, definiamo un metodo virtuale come un metodo di istanza che può essere sovrascritto. Quindi metodi dichiarati come \texttt{static}, \texttt{final} o \texttt{private} non sono considerati virtuali. Java segue la seguente semantica di invocazione di metodi:
 \begin{itemize}
@@ -710,7 +710,9 @@ questo è molto diverso da quello che accade in Rust in cui questi tre elementi 
     \item Lo stato e il tipo degli oggetti è definito dalle \texttt{struct}.
     \item Il comportamento è definito all'interno di un blocco \texttt{impl} che può essere associato a una \texttt{struct} o a un \texttt{trait}.
 \end{itemize}
-Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità, la classe, mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. Ad esempio, consideriamo il seguente codice Java preso dal libro "Core Java for the Impatient" \cite{horstmann-java-impatient}:
+Quindi, in Java, stato e comportamento sono definiti insieme in una singola entità, la classe, mentre in Rust c'è una separazione di queste responsabilità. Questa differenza ha implicazioni significative su come si estende il comportamento di tipi esistenti in ciascun linguaggio. In particolare, poiché Rust non supporta l'ereditarietà tra tipi, e quindi nemmeno la ridefinizione dei metodi (overriding), l'estensione di comportamento deve essere ottenuta tramite composizione e implementazione di traits. 
+
+Consideriamo il seguente scenario, ispirato al libro Core Java for the Impatient \cite{horstmann-java-impatient}: vogliamo modellare il caso in cui sia necessario calcolare lo stipendio di un dipendente all'interno di un'azienda. Questo può essere un semplice impiegato o un manager che riceve un bonus. Poiché un manager è un tipo speciale di impiegato, l'obiettivo è quello di riusare il codice che definisce il comportamento di un dipendente per estenderlo e adattarlo al caso specifico del manager. In Java, questo può essere fatto tramite meccanismi OOP come ereditarietà e overriding. In Rust, invece, si può utilizzare composizione e traits per ottenere un comportamento analogo. In Java, si può rappresentare un dipendente attraverso la classe \texttt{Employee}:
 \begin{minted}[fontsize = \small]{Java}
     class Employee {
         private double salary;
@@ -720,7 +722,7 @@ Quindi, in Java, stato e comportamento sono definiti insieme in una singola enti
         }
     }
 \end{minted}
-Supponiamo di voler implementare una classe \texttt{Manager} che estende \texttt{Employee} per aggiungere un bonus e, quindi, modificare il comportamento del metodo \texttt{getSalary()} per tener conto di questo bonus. In Java, questo può essere fatto creando una sottoclasse:
+Ora, definiamo la classe \texttt{Manager} che estende \texttt{Employee} e ridefinisce il metodo \texttt{getSalary()}:
 \begin{minted}[fontsize = \small]{Java}
     class Manager extends Employee {
         private double bonusPercentage;
@@ -731,7 +733,7 @@ Supponiamo di voler implementare una classe \texttt{Manager} che estende \texttt
         }
     }
 \end{minted}
-Si può notare che tramite ereditarietà e overriding, la sottoclasse \texttt{Manager} ha ereditato sia lo stato (campo \texttt{salary}) che il comportamento (metodo \texttt{getSalary()}) dalla superclasse \texttt{Employee}, e ha sovrascritto il metodo \texttt{getSalary()} per fornire un nuovo comportamento specifico per i manager. In Rust, si può utilizzare la composizione:
+Si può notare che tramite ereditarietà, la sottoclasse \texttt{Manager} ha ereditato sia lo stato (campo \texttt{salary}) che il comportamento (metodo \texttt{getSalary()}) dalla superclasse \texttt{Employee}, e ha sovrascritto il metodo \texttt{getSalary()} per fornire un nuovo comportamento specifico per i manager. In Rust, si può utilizzare la composizione:
 \begin{minted}[fontsize = \small]{Rust}
     struct Employee {
         salary: f64,
@@ -742,9 +744,7 @@ Si può notare che tramite ereditarietà e overriding, la sottoclasse \texttt{Ma
             self.salary
         }
     }
-\end{minted}
-Per aggiungere la capacità di calcolare un bonus, si può definire una nuova struct \texttt{Manager} che contiene un'istanza di \texttt{Employee}:
-\begin{minted}[fontsize = \small]{Rust}
+
     struct Manager {
         employee: Employee,
         bonus_percentage: f64,
@@ -756,7 +756,7 @@ Per aggiungere la capacità di calcolare un bonus, si può definire una nuova st
         }
     }
 \end{minted}
-Già da questo esempio si può notare come in Rust il comportamento viene esteso tramite composizione: la struct \texttt{Manager} contiene un'istanza di \texttt{Employee}. 
+Tramite questa implementazione, si può riutilizzare il codice di \texttt{Employee} all'interno di \texttt{Manager}: attraverso la composizione, \texttt{Manager} ha un campo che è un'istanza di \texttt{Employee}, e può chiamare il metodo \texttt{get\_salary()} di \texttt{Employee} per ottenere lo stipendio base, e poi calcolare il bonus.
 
 Ora, consideriamo il caso in cui si voglia trattare \texttt{Manager} e \texttt{Employee} in maniera uniforme. In Java, questo è possibile grazie al fatto che \texttt{Manager} è un sottotipo di \texttt{Employee}, quindi si può usare il polimorfismo basato su sottotipi. Ad esempio, consideriamo la seguente classe Java:
 \begin{minted}[fontsize = \small]{Java}
@@ -764,10 +764,15 @@ Ora, consideriamo il caso in cui si voglia trattare \texttt{Manager} e \texttt{E
         public void paySalary(Employee emp) {
             double amount = emp.getSalary();
             System.out.println("Processing payment of: " + amount);
+            // Logica di pagamento
         }
     }
 \end{minted}
-In questo caso, tramite il polimorfismo dinamico di Java, il metodo \texttt{processPayment()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{getSalary()} in base al tipo concreto dell'oggetto passato. In Rust, il codice precedente non permette questa flessibilità, poiché \texttt{Manager} ed \texttt{Employee} sono completamente scorrelati a livello di tipi. Per ottenere un comportamento simile in Rust, si può utilizzare un trait per definire un'interfaccia comune:
+In questo caso, tramite il polimorfismo dinamico di Java, il metodo \texttt{paySalary()} può accettare sia istanze di \texttt{Employee} che di \texttt{Manager}, e chiamare il metodo corretto \texttt{getSalary()} in base al tipo effettivo dell'oggetto passato. In Rust, il codice precedente non permette questa flessibilità, poiché \texttt{Manager} ed \texttt{Employee} sono completamente scorrelati a livello di tipi. Per ottenere un comportamento simile in Rust, si può rifattorizzare il codice utilizzando i traits:
+\begin{itemize}
+    \item Definire un trait \texttt{Payable} che dichiara il metodo \texttt{get\_salary()}.
+    \item Implementare il trait \texttt{Payable} per entrambe le strutture (\texttt{Employee} e \texttt{Manager}), spostando in questa implementazione la logica dei rispettivi metodi \texttt{get\_salary()}, che quindi non devono più essere definiti direttamente nelle strutture.
+\end{itemize}
 \begin{minted}[fontsize = \small]{Rust}
     trait Payable {
         fn get_salary(&self) -> f64;
@@ -785,7 +790,7 @@ In questo caso, tramite il polimorfismo dinamico di Java, il metodo \texttt{proc
         }
     }
 \end{minted}
-Adesso \texttt{Employee} e \texttt{Manager} implementano entrambi il trait \texttt{Payable}, quindi si può definire una funzione che accetta un parametro generico con vincolo di tipo \texttt{Payable}:
+Adesso \texttt{Employee} e \texttt{Manager} implementano entrambi il trait \texttt{Payable}, quindi si può definire una funzione che accetta un parametro generico con vincolo di tipo:
 \begin{minted}[fontsize = \small]{Rust}
     struct Payroll;
 
@@ -793,6 +798,7 @@ Adesso \texttt{Employee} e \texttt{Manager} implementano entrambi il trait \text
         fn pay_salary<T: Payable>(&self, emp: &T) {
             let amount = emp.get_salary();
             println!("Processing payment of: {}", amount);
+            // Logica di pagamento
         }
     }
 \end{minted}
@@ -810,14 +816,16 @@ Estendiamo ulteriormente l'esempio aggiungendo un nuovo metodo nella classe \tex
         }
     }
 \end{minted}
-Ancora una volta, grazie al subtyping di Java, \texttt{payEmployees()} funziona correttamente. In Rust, limitarsi a usare generics non è sufficiente per ottenere lo stesso comportamento. Questo perché i generics vengono monomorfizzati, rendendo impossibile la creazione di una collezione di tipi eterogenei. Per ottenere questo comportamento in Rust, si deve utilizzare un trait object:
+Ancora una volta, grazie al subtyping di Java, \texttt{payEmployees()} funziona correttamente. In Rust, limitarsi a usare generics non è sufficiente per ottenere lo stesso comportamento. Questo perché i generics vengono monomorfizzati, rendendo impossibile la creazione di una collezione di tipi eterogenei. Per ottenere questo comportamento in Rust, si deve utilizzare i trait object:
 \begin{minted}[fontsize = \small]{Rust}
     impl Payroll {
-        fn pay_salary<T: Payable>(&self, emp: &T) { /* ... */ }
+        fn pay_salary(&self, emp: Box<dyn Payable>) {
+            println!("Paying salary: {}", emp.get_salary());
+        }
 
-        fn pay_employees(&self, employees: &Vec<Box<dyn Payable>>) {
+        fn pay_employees(&self, employees: Vec<Box<dyn Payable>>) {
             for emp in employees {
-                self.pay_salary(emp.as_ref());
+                self.pay_salary(emp);
             }
         }
     }
@@ -826,11 +834,11 @@ In questo caso, tramite trait objects e dynamic dispatch, la funzione \texttt{pa
 
 Da questo esempio si notare differenze sostanziali tra come i due linguaggi supportano l'estensione del comportamento. Non esiste un approccio migliore ma dipende dal contesto specifico e dai requisiti del progetto. In generale, si possono fare le seguenti osservazioni:
 \begin{itemize}
-    \item Java offre un meccanismo di estensione del comportamento più diretto e intuitivo tramite l'ereditarietà e il polimorfismo basato su sottotipi. Questo rende più semplice la creazione di gerarchie di classi e l'estensione del comportamento esistente. Invece, Rust, richiede molto più lavoro per ottenere lo stesso risultato. Rust, sacrifica un po' di semplicità per ottenere una maggiore sicurezza e performance.
+    \item Java offre un meccanismo di estensione del comportamento più diretto e intuitivo tramite l'ereditarietà e il polimorfismo basato su sottotipi. Questo rende più semplice la creazione di gerarchie di classi e l'estensione del comportamento esistente. Invece, Rust, richiede molto più lavoro per ottenere lo stesso risultato. Rust sacrifica un po' di semplicità per ottenere una maggiore sicurezza e performance.
     \item Rust lascia allo sviluppatore più libertà di scelta riguardo l'utilizzo di meccanismi statici o dinamici. Questo anche perché Rust utilizza solamente static dispatch a meno che non sia dichiarato differentemente dallo sviluppatore tramite i trait objects. Java, invece, se utilizzato secondo i principi della programmazione orientata agli oggetti, utilizza principalmente il dynamic dispatch.
     \item La scelta della composizione è quasi obbligata in Rust, questo può essere visto come una cosa positiva perché l'estensione del comportamento tramite ereditarietà porta con sé diversi problemi quali:
     \begin{itemize}
-        \item Il \textit{Fragile Base Class Problem}: quando una superclasse viene modificata, le sottoclassi che dipendono da essa possono rompersi in modi inaspettati.
+        \item Il \textit{Fragile Base Class Problem} \cite{mikhajlov-sekerinski-fragile-base-class}: quando una superclasse viene modificata, le sottoclassi che dipendono da essa possono rompersi in modi inaspettati.
         \item Quando estendo una classe eredito tutti i suoi metodi (\texttt{public} e \texttt{protected}), anche quelli a cui non sono interessato, e non posso fare altrimenti. Questo può causare comportamenti indesiderati. Per risolvere questo problema si può nuovamente utilizzare il pattern \textit{Adapter} per adattare il comportamento della superclasse.
         \item La possibilità di estendere in maniera incontrollata le classi ha portato Java ad introdurre le classi (e interfacce) \texttt{Sealed} tramite le quali è possibile mettere dei vincoli su quali classi possono estendere una determinata superclasse.
     \end{itemize}
