@@ -842,7 +842,7 @@ Da questo esempio si notare differenze sostanziali tra come i due linguaggi supp
         \item Quando estendo una classe eredito tutti i suoi metodi (\texttt{public} e \texttt{protected}), anche quelli a cui non sono interessato, e non posso fare altrimenti. Questo può causare comportamenti indesiderati. Per risolvere questo problema si può nuovamente utilizzare il pattern \textit{Adapter} per adattare il comportamento della superclasse.
         \item La possibilità di estendere in maniera incontrollata le classi ha portato Java ad introdurre le classi (e interfacce) \texttt{Sealed} tramite le quali è possibile mettere dei vincoli su quali classi possono estendere una determinata superclasse.
     \end{itemize}
-    In generale, è buona pratica favorire la composizione rispetto all'ereditarietà. 
+    In generale, è buona pratica favorire la composizione rispetto all'ereditarietà \cite{gamma-design-patterns}: "Favor composition over inheritance".
 \end{itemize}
 \begin{comment}
 \section{Meccanismi di Dispatch}
