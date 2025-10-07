@@ -1,20 +1,19 @@
 % !TEX root = ../Thesis.tex
 
 \chapter{Introduzione}
-The introduction is usually a short chapter that can be read in less than 10 minutes.
+Negli ultimi anni, Rust è emerso come uno dei linguaggi di programmazione più promettenti e apprezzati dalla comunità degli sviluppatori, guadagnando popolarità in ambiti che richiedono elevate prestazioni e garanzie di sicurezza della memoria. Creato da Mozilla Research e successivamente adottato da grandi aziende come Microsoft, Google e Amazon, Rust offre un modello di gestione della memoria innovativo che elimina la necessità di un Garbage Collector, garantendo l'assenza di errori comuni come buffer overflow, dangling pointer e data race. Queste caratteristiche lo rendono particolarmente adatto per lo sviluppo di sistemi critici come sistemi operativi e infrastrutture di rete.
 
-The goal of the Introduction is to engage the reader (why you should keep reading).
-You don't have to discuss anything in detail. Rather, the goal is to tell the reader:
+Tuttavia, Rust si discosta notevolmente dai linguaggi object-oriented tradizionali come Java, che da decenni domina lo sviluppo applicativo. Java, con la sua gestione automatica della memoria tramite Garbage Collector e il suo solido supporto al polimorfismo tramite ereditarietà e interfacce, ha semplificato lo sviluppo software per generazioni di programmatori. Il confronto tra questi due linguaggi non è solo accademico, ma ha implicazioni pratiche per sviluppatori che devono valutare quale tecnologia adottare.
+
+Questa tesi si propone di analizzare sistematicamente le differenze fondamentali tra Rust e Java, concentrandosi su due aspetti chiave: la gestione della memoria e il supporto al polimorfismo. Attraverso un'analisi comparativa dei due aspetti, il lavoro mira a evidenziare le diverse scelte progettuali alla base di ciascun linguaggio e le loro implicazioni pratiche. 
+
+Il metodo di analisi si basa sull'esame diretto delle caratteristiche linguistiche, supportato da esempi di codice comparativi che illustrano come concetti simili siano implementati in modo diverso nei due linguaggi. L'attenzione è rivolta non solo alle differenze sintattiche, ma anche alle implicazioni che ciascun approccio comporta sullo sviluppo del software.
+
+La tesi è strutturata come segue: 
 \begin{itemize}
-%  \item Why something has to be done (why the thesis topic is important),
-  \item what is the problem dealt with and why the problem is a problem;
-  \item what is the particular topic you're going to talk about in the thesis;
-  \item what are your goals in doing so, and what methodology do you follow;
-  \item what are the implications of your work.
+    \item Capitolo 1: Introduzione nel quale vengono presentati gli obiettivi e la struttura del lavoro.
+    \item Capitolo 2: Panoramica dei tipi di dati nei due linguaggi, seguita dalla presentazione dei concetti fondamentali, come \texttt{struct} ed \texttt{enum} in Rust, necessari per la corretta comprensione dei capitoli successivi. 
+    \item Capitolo 3: Analisi delle differenze nella gestione della memoria tra Rust e Java, con particolare attenzione ai concetti di ownership e borrowing in Rust, confrontati con il modello di Garbage Collection di Java.
+    \item Capitolo 4: Analisi delle differenze nel supporto al polimorfismo, esaminando i meccanismi statici e dinamici offerti da entrambi i linguaggi. Il capitolo si conclude con una sezione che mostra, mediante un esempio pratico, come sia possibile estendere il comportamento nei due linguaggi sfruttando i rispettivi meccanismi di polimorfismo.
+    \item Capitolo 5: In quest'ultimo capitolo vengono riassunti i principali risultati dell'analisi comparativa, evidenziando i punti di forza e le limitazioni di ciascun linguaggio nei due ambiti considerati. 
 \end{itemize}
-
-The above points will be further expanded in the following chapters, so only a glimpse is essential. 
-
-\medskip
-
-It is customary to conclude the Introduction with a summary of the content of the rest of the thesis. One or two sentences are enough for each chapter.

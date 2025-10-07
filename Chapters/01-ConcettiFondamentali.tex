@@ -171,8 +171,8 @@ Così come possiamo definire funzioni ``libere'', è possibile associare funzion
 
 Il parametro \texttt{self} può essere passato in diversi modi, a seconda di come si desidera utilizzare l'istanza della struct all'interno del metodo, spesso è passato tramite riferimento per motivi di ownership e borrowing (vedi sezione \ref{sec:borrowing}). In Java, esiste un concetto simile a \texttt{self} che è \texttt{this}: un riferimento implicito all'istanza corrente della classe. A differenza di \texttt{self}, \texttt{this} è sempre disponibile e non è necessario dichiararlo esplicitamente. In generale, i metodi di una struct definiscono il comportamento associato a un'istanza di quella struct.
 
-Invece, le funzioni associate che non prendono \texttt{self} come primo parametro sono spesso usate come costruttori o funzioni di utilità legate alla struct ma non a una specifica istanza. Ad esempio:
-\begin{listing}[H]
+Invece, le funzioni associate che non prendono \texttt{self} come primo parametro sono spesso usate come costruttori o funzioni di utilità legate alla struct ma non a una specifica istanza, vedi listato \ref{lst:associated_function_example}.
+\begin{listing}
     \begin{minted}[fontsize=\small]{Rust}
         impl Book {
             fn new(title: String, pages: u32) -> Self {
@@ -241,7 +241,7 @@ In Java, un enum è dichiarato in maniera analoga:
         POINT; 
     }
 \end{minted}
-In entrambi i linguaggi è possibile associare dati alle varianti di un enum. Tuttavia, c'è una differenza sostanziale tra la flessibilità con cui si può eseguire questa associazione.
+In entrambi i linguaggi è possibile associare dati alle varianti di un enum. Tuttavia, c'è una differenza sostanziale tra la flessibilità con cui si può eseguire questa associazione:
 \begin{itemize}
     \item In Java, un enum è classe speciale in cui le varianti sono istanze singleton statiche e finali di quella classe. Questo significa che ogni variante deve essere inizializzata esplicitamente nel momento della sua dichiarazione o all'interno di un blocco \texttt{static {}}. Ad esempio, se volessimo associare un numero di lati a ogni variante dell'enum \texttt{Shape}, in Java potremmo farlo nel seguente modo:
 \begin{minted}[fontsize=\small]{Java}
@@ -351,7 +351,7 @@ Quindi, si può notare come gli enum di Rust offrano funzionalità molto più po
         };
     }
 \end{minted}
-In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni ``variante'' è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Tuttavia, questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Tuttavia, in questo caso, Java garantisce l'esaustività del pattern matching grazie all'uso di interfacce \texttt{sealed}.
+In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni ``variante'' è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Da osservare che questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Tuttavia, in questo caso, Java garantisce l'esaustività del pattern matching grazie all'uso di interfacce \texttt{sealed}.
 
 Infine, analogamente a quello che succede per le struct, anche gli enum in Rust possono avere metodi associati definiti all'interno di un blocco \texttt{impl}. Ad esempio:
 \begin{minted}[fontsize=\small]{Rust}

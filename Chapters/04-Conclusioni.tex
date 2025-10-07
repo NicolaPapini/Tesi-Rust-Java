@@ -1,0 +1,45 @@
+% filepath: c:\Users\Nicola Papini\Desktop\Tesi-Rust-Java\Chapters\04-Conclusioni.tex
+% !TEX root = ../Thesis.tex
+
+\chapter{Conclusioni}
+\begin{comment}
+    They say that the conclusions are the shortened version of the introduction, and while the Introduction uses future verbs (we will), the conclusions use the past verbs (we did). It is basically true.
+
+In the conclusions, you might also mention the shortcomings of the present work and outline what are the likely, necessary, extension of it.
+E.g., we did analyse the performance of this network assuming that all the users are pedestrians, but it would be interesting to include in the study also the ones using bicycles or skateboards.
+
+Finally, you are strongly encouraged to carefully spell check your text, also using automatic tools (like, e.g., Grammarly\footnote{\url{https://www.grammarly.com/}} for English language).
+\end{comment}
+
+Questa tesi si è proposta di analizzare le differenze fondamentali tra Rust e Java in termini di gestione della memoria e supporto al polimorfismo. Attraverso un'analisi comparativa sistematica, sono emerse le diverse filosofie progettuali alla base dei due linguaggi e le loro implicazioni pratiche per lo sviluppo software.
+
+\section{Gestione della memoria}
+L'analisi della gestione della memoria ha evidenziato approcci diametralmente opposti tra i due linguaggi. Java adotta una strategia completamente automatizzata attraverso il Garbage Collector, che semplifica lo sviluppo ma introduce overhead a runtime. Il programmatore è liberato dalla responsabilità di gestire manualmente la deallocazione della memoria, riducendo significativamente il rischio di errori comuni come memory leak e dangling pointer. Tuttavia, le pause introdotte dal GC possono risultare problematiche in applicazioni che richiedono prestazioni real-time o comunque molto elevate.
+
+Rust, al contrario, ha dimostrato come sia possibile ottenere sicurezza nella gestione della memoria senza l'utilizzo di un Garbage Collector. Il sistema di ownership e borrowing garantisce la prevenzione di errori di memoria a compile-time, eliminando l'overhead a runtime tipico del GC. L'approccio di Rust si è rivelato particolarmente efficace nel prevenire comportamenti indefiniti e nel garantire deallocazione deterministica della memoria. Tuttavia, questo viene ottenuto al prezzo di una maggiore complessità concettuale che richiede al programmatore di comprendere e rispettare regole rigorose.
+
+Il concetto di ownership ha mostrato come sia possibile tracciare in modo preciso il ciclo di vita delle risorse, mentre il borrowing fornisce la flessibilità necessaria per condividere dati senza compromettere la sicurezza. L'eliminazione completa del concetto di \texttt{null} a favore del tipo \texttt{Option<T>} rappresenta un miglioramento significativo nella prevenzione di errori a runtime.
+
+\section{Polimorfismo}
+Nel campo del polimorfismo, entrambi i linguaggi offrono meccanismi potenti ma con approcci differenti. Java fornisce un supporto diretto e intuitivo al polimorfismo attraverso ereditarietà e interfacce, rendendo naturale l'implementazione di gerarchie di tipi.
+
+Rust ha dimostrato come sia possibile ottenere polimorfismo senza ereditarietà tradizionale, utilizzando trait e generics. In alcuni casi, i trait di Rust si sono rivelati più flessibili delle interfacce Java, permettendo l'implementazione di comportamenti per tipi esterni (con la restrizione dell'orphan rule) e supportando implementazioni multiple dello stesso trait generico per un singolo tipo. La monomorphization garantisce prestazioni ottimali eliminando l'overhead del dynamic dispatch, prevalentemente usato da Java, quando non necessario.
+
+L'analisi dell'estensione del comportamento ha evidenziato come, in Rust, questo processo risulti più complesso e richieda una maggiore attenzione da parte dello sviluppatore, a differenza di quanto avviene in Java, dove tali comportamenti sono ottenibili in modo più immediato.
+\section{Considerazioni generali}
+La comparazione ha rivelato come entrambi i linguaggi rappresentino scelte progettuali coerenti ma orientate verso obiettivi differenti. Java privilegia la semplicità di sviluppo e la produttività, accettando alcuni compromessi in termini di prestazioni e controllo delle risorse. Rust, invece, prioritizza prestazioni e sicurezza, richiedendo un maggiore investimento in termini di curva di apprendimento.
+
+La scelta tra i due linguaggi dipende fortemente dal contesto applicativo:
+\begin{itemize}
+    \item Java risulta più adatto per contesti dove la produttività del team è prioritaria rispetto alle prestazioni pure.
+    \item Lo sviluppo con Java risulta più naturale in applicazioni che devono modellare gerarchie di oggetti complesse grazie al suo supporto nativo all'ereditarietà e alle interfacce.
+    \item Rust eccelle in sistemi dove prestazioni, sicurezza della memoria e controllo delle risorse sono critici, come sistemi operativi o applicazioni embedded.
+\end{itemize}
+
+\section{Limitazioni e sviluppi futuri}
+Il presente lavoro ha alcune limitazioni che potrebbero essere affrontate in future estensioni:
+\begin{itemize}
+    \item L'analisi è stata principalmente teorica e basata su esempi illustrativi. Uno studio empirico con benchmark di performance reali potrebbe fornire dati quantitativi più precisi sulle differenze di prestazioni tra i due approcci.
+    \item Le considerazioni fatte sulla curva d'apprendimento e sulla complessità si sviluppo di Rust sono basate su osservazioni qualitative. Un'indagine su sviluppatori con diversi livelli di esperienza potrebbe offrire informazioni più dettagliate sul tema.
+\end{itemize}
+In conclusione, questa tesi ha stabilito una base per comprendere le differenze fondamentali tra Rust e Java negli ambiti considerati, fornendo al lettore conoscenze fondamentali per valutare quale linguaggio sia più adatto alle proprie esigenze.
