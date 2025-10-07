@@ -360,8 +360,8 @@ Rust ha come filosofia principale la sicurezza e la performance, quest' ultima v
 
 Java, invece, adotta un approccio più orientato all'object-oriented tradizionale, dove, per supportare l'ereditarietà e il polimorfismo, si predilige il dynamic dispatch per determinare quale implementazione di metodo utilizzare per una specifica firma. 
 \subsection{Rust}
-Il caso più semplice da considerare in Rust è quello in cui si chiama una funzione classica:
-\begin{listing}[H]
+Il caso più semplice da considerare in Rust è quello in cui si chiama una funzione classica. Ad esempio, consideriamo il listato \ref{lst:rust_function_call}:
+\begin{listing}
     \begin{minted}[fontsize=\small]{Rust}
         fn plus_one(x: i32) -> i32 {
             x + 1
@@ -375,14 +375,14 @@ Il caso più semplice da considerare in Rust è quello in cui si chiama una funz
     \caption{Esempio di chiamata a funzione in Rust.}
     \label{lst:rust_function_call}
 \end{listing}
-Il compilatore Rust è capace di determinare esattamente quale funzione chiamare, poiché non vi è alcuna ambiguità: esiste una sola funzione con quel nome e quella firma. In questo caso, la risoluzione del metodo avviene in modo statico, senza alcun overhead a runtime.
+il compilatore Rust è capace di determinare esattamente quale funzione chiamare, poiché non vi è alcuna ambiguità: esiste una sola funzione con quel nome e quella firma. In questo caso, la risoluzione del metodo avviene in modo statico, senza alcun overhead a runtime.
 
 Il caso più interessante avviene quando viene eseguita una chiamata di metodo. Questa può riferirsi sia a un metodo intrinseco, ossia definito direttamente su una \texttt{struct} o un \texttt{enum}, sia a un metodo di trait. In entrambi i casi, il compilatore determina quale funzione chiamare eseguendo:
 \begin{itemize}
     \item Dispatch statico se il tipo esatto su cui il metodo è chiamato è conosciuto a compile-time.
     \item Dispatch dinamico se il tipo su cui il metodo è chiamato è un \textit{trait object} indiretto (vedi sezione \ref{sec:trait_objects}).
 \end{itemize}
-Quando vengono usati i generics e i trait bounds, il compilatore userà lo static dispatch per risolvere le chiamate ai metodi. In particolare, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato, e quindi la risoluzione avviene a compile time senza la necessità di eseguire alcuna scelta a runtime. Questo processo è noto come \textit{monomorphization} (descritto nel dettaglio nella sezione \ref{sec:generics}). Per mostrare esplicitamente questo comportamento consideriamo il seguente codice \footnote{L'attributo \texttt{\#[inline(never)]} indica al compilatore di non effettuare l'inlining di una funzione, ossia di non sostituire la chiamata con il corpo della funzione stessa. Questo permette di osservare chiaramente le chiamate di funzione nel codice compilato.}:
+Quando vengono usati i generics e i trait bounds, il compilatore userà lo static dispatch per risolvere le chiamate ai metodi. In particolare, il compilatore genera una versione specializzata della funzione per ogni tipo concreto utilizzato, e quindi la risoluzione avviene a compile time senza la necessità di eseguire alcuna scelta a runtime. Questo processo è noto come \textit{monomorphization} (descritto nel dettaglio nella sezione \ref{sec:generics}). Per mostrare esplicitamente questo comportamento consideriamo il seguente codice:
 \begin{minted}[fontsize=\small] {Rust}
     trait Drivable {
         fn drive(&self);
@@ -390,7 +390,6 @@ Quando vengono usati i generics e i trait bounds, il compilatore userà lo stati
 
     struct Car;
     impl Drivable for Car {
-        #[inline(never)]
         fn drive(&self) {
             println!("You are driving a car.");
         }
@@ -398,7 +397,6 @@ Quando vengono usati i generics e i trait bounds, il compilatore userà lo stati
 
     struct Motorcycle; 
     impl Drivable for Motorcycle {
-        #[inline(never)]
         fn drive(&self) {
             println!("You are driving a motorcycle.");
         }
@@ -406,7 +404,6 @@ Quando vengono usati i generics e i trait bounds, il compilatore userà lo stati
 
     struct Boat;
     impl Drivable for Boat {
-        #[inline(never)]
         fn drive(&self) {
             println!("You are driving a boat");
         }
@@ -839,11 +836,10 @@ Da questo esempio si notare differenze sostanziali tra come i due linguaggi supp
     \item Rust lascia allo sviluppatore più libertà di scelta riguardo l'utilizzo di meccanismi statici o dinamici. Questo anche perché Rust utilizza solamente static dispatch a meno che non sia dichiarato differentemente dallo sviluppatore tramite i trait objects. Java, invece, se utilizzato secondo i principi della programmazione orientata agli oggetti, utilizza principalmente il dynamic dispatch.
     \item La scelta della composizione è quasi obbligata in Rust, questo può essere visto come una cosa positiva perché l'estensione del comportamento tramite ereditarietà porta con sé diversi problemi quali:
     \begin{itemize}
-        \item Il \textit{Fragile Base Class Problem} \cite{mikhajlov-sekerinski-fragile-base-class}: quando una superclasse viene modificata, le sottoclassi che dipendono da essa possono rompersi in modi inaspettati.
-        \item Quando estendo una classe eredito tutti i suoi metodi (\texttt{public} e \texttt{protected}), anche quelli a cui non sono interessato, e non posso fare altrimenti. Questo può causare comportamenti indesiderati. Per risolvere questo problema si può nuovamente utilizzare il pattern \textit{Adapter} per adattare il comportamento della superclasse.
+        \item Il \textit{Fragile Base Class Problem} \cite{mikhajlov-sekerinski-fragile-base-class}: quando una superclasse viene modificata, le sottoclassi dipendenti da essa possono rompersi in modi inaspettati.
+        \item Quando viene estesa una classe si ereditano tutti i suoi metodi (\texttt{public} e \texttt{protected}), anche quelli a cui non sono interessato, e non si può fare altrimenti. Questo può causare comportamenti indesiderati. Per risolvere questo problema si può nuovamente utilizzare il pattern \textit{Adapter} per adattare il comportamento della superclasse.
         \item La possibilità di estendere in maniera incontrollata le classi ha portato Java ad introdurre le classi (e interfacce) \texttt{Sealed} tramite le quali è possibile mettere dei vincoli su quali classi possono estendere una determinata superclasse.
     \end{itemize}
-    In generale, è buona pratica favorire la composizione rispetto all'ereditarietà \cite{gamma-design-patterns}: "Favor composition over inheritance".
 \end{itemize}
 \begin{comment}
 \section{Meccanismi di Dispatch}
