@@ -183,7 +183,7 @@ Invece, le funzioni associate che non prendono \texttt{self} come primo parametr
     \caption{Esempio di funzione associata in Rust.}
     \label{lst:associated_function_example}
 \end{listing}
-\texttt{Self} in posizione di tipo di ritorno di una funzione associata si riferisce al tipo della struct stessa, in questo caso \texttt{Point}. Per chiamare questo tipo di funzioni associate, si utilizza la sintassi \texttt{NomeStruct::nome\_funzione()}:
+\texttt{Self} in posizione di tipo di ritorno di una funzione associata si riferisce al tipo della struct stessa, in questo caso \texttt{Book}. Per chiamare questo tipo di funzioni associate, si utilizza la sintassi \texttt{NomeStruct::nome\_funzione()}:
 \begin{minted}[fontsize=\small]{Rust}
     let book = Book::new(String::from("1984"), 328);
 \end{minted}
