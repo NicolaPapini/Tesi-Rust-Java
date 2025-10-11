@@ -189,7 +189,7 @@ Invece, le funzioni associate che non prendono \texttt{self} come primo parametr
 \end{minted}
 In particolare, nel listato \ref{lst:associated_function_example}, si è utilizzato un forma più breve e leggera per inizializzare i campi della struct. Questa sintassi è utilizzata quando i nomi dei parametri della funzione corrispondono ai nomi dei campi della struct. In questo caso, \texttt{Self \{ title, pages \}} è equivalente a \texttt{Self \{ title: title, pages: pages \}}. Java non mette a disposizione questo tipo di funzionalità, anzi in Java lo sviluppatore è tenuto a disambiguare esplicitamente i nomi dei parametri del costruttore dai nomi delle variabili d'istanza della classe utilizzando la parola chiave \texttt{this}.
 
-In Java, il concetto di funzione associata è superfluo poiché le funzioni sono sempre definite, e quindi associate, all'interno di una classe. I metodi Rust sono analoghi ai metodi di istanza in Java, ossia metodi che appartengono a un'istanza specifica di una classe. Quindi, il listato \ref{lst:method_example} potrebbe essere tradotto in Java con il codice riportato nel listato \ref{lst:java_method_example}.
+In Java, il concetto di funzione associata è superfluo poiché le funzioni sono sempre definite, e quindi associate, all'interno di una classe. I metodi Rust sono analoghi ai metodi d'istanza in Java, ossia metodi che appartengono a un'istanza specifica di una classe. Quindi, il listato \ref{lst:method_example} potrebbe essere tradotto in Java con il codice riportato nel listato \ref{lst:java_method_example}.
 \begin{listing}
 \begin{minted}[fontsize=\small]{Java}
     class Book {
