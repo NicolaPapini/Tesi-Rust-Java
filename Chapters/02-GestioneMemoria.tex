@@ -10,7 +10,7 @@ Questo capitolo esplorerà nel dettaglio come Java e Rust affrontano il tema del
 Java è un linguaggio di programmazione progettato per essere semplice, portabile e sicuro, con una gestione della memoria che mira a ridurre la complessità e prevenire errori comuni legati all'uso diretto delle risorse. Java raggiunge questi obiettivi affidando l'intera gestione della memoria alla Java Virtual Machine (JVM). Gli aspetti fondamentali dell'approccio Java sono:
 
 \begin{enumerate}
-\item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono creati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
+\item L'allocazione automatica della memoria tramite JVM: gli oggetti vengono allocati dinamicamente nell'heap senza che il programmatore debba preoccuparsi di allocare la memoria manualmente. 
 \item La deallocazione automatica della memoria tramite il garbage collector, una componente della JVM che si occupa di individuare e liberare la memoria occupata da oggetti non più raggiungibili, prevenendo così problemi comuni in altri linguaggi, come memory leak e dangling pointer\footnote{Un dangling pointer è un riferimento a una variabile che è stata deallocata e quindi non più valido.}. Questo, di fatto, toglie al programmatore la responsabilità collegata al dover gestire manualmente la deallocazione della memoria, riducendo la probabilità di errori nel codice.
 \item La prevenzione di comportamenti indefiniti a run-time, attraverso un controllo rigoroso dell'accesso alla memoria a runtime: ad esempio, accessi a riferimenti \texttt{null} generano eccezioni gestibili da parte dello sviluppatore. 
 \end{enumerate}
@@ -144,7 +144,7 @@ Il meccanismo di passaggio degli argomenti a funzione in Rust è strettamente le
 \begin{minted} [fontsize=\small] {Rust}
     fn main() {
         let s1 = String::from("Hello");
-        // Ownership di s1 viene trasferita a print_string
+        // Ownership di s1 viene trasferita a s
         print_string(s1); 
         println!("{}", s1); // Errore di compilazione
     }
