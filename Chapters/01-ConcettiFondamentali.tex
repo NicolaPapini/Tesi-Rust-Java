@@ -27,7 +27,7 @@ In Rust sono presenti i seguenti tipi di tipi:
     \item Tipi primitivi:
         \begin{itemize}
             \item Tipo Booleano: \texttt{bool}.
-            \item Tipi Numerici: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{u128}, \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{i128}, \texttt{f32}, \texttt{f64}. I primi sei sono interi, mentre gli ultimi due sono virgola mobile.
+            \item Tipi Numerici: \texttt{u8}, \texttt{u16}, \texttt{u32}, \texttt{u64}, \texttt{u128}, \texttt{i8}, \texttt{i16}, \texttt{i32}, \texttt{i64}, \texttt{i128}, \texttt{f32}, \texttt{f64}. I primi sei sono interi, mentre gli ultimi due sono in virgola mobile.
             \item Tipo Testuale: \texttt{char} o \texttt{str}. 
             \item Tipo Never: \texttt{!}, rappresenta un tipo che non ha valori. Può essere utilizzato solo come tipo di ritorno di una funzione. Rappresenta il risultato di una computazione che non viene mai completata. 
         \end{itemize} 
@@ -42,7 +42,7 @@ In Rust sono presenti i seguenti tipi di tipi:
         \item Tipi Puntatore: questo tipo comprende tre diversi tipi:
             \begin{enumerate}
                 \item Tipo Riferimento: vedi sezione \ref{sec:borrowing}. 
-                \item Tipo Raw Pointer: Per un tipo \texttt{T} si hanno \texttt{*const T} e \texttt{*mut T}. Sono puntatori senza garanzie di sicurezza e liveness.
+                \item Tipo Raw Pointer: per un tipo \texttt{T} si hanno \texttt{*const T} e \texttt{*mut T}. Sono puntatori senza garanzie di sicurezza e liveness.
                 \item Tipo Smart Pointer: puntatori che forniscono funzionalità aggiuntive rispetto ai puntatori grezzi come la gestione automatica della memoria. I più comuni sono \texttt{Box<T>}, \texttt{Rc<T>} e \texttt{Arc<T>}. 
                 \item Tipo Puntatore a funzione: dichiarati come \texttt{fn(\&T) -> U} per una funzione che prende un riferimento a \texttt{T} e restituisce un valore di tipo \texttt{U}.
             \end{enumerate}
@@ -333,23 +333,23 @@ Questo codice compila, ma se venisse passato il valore \texttt{PENDING} si verif
 
 Quindi, si può notare come gli enum di Rust offrano funzionalità molto più potenti e flessibili: è possibile associare dati diversi a ciascuna variante e accedervi direttamente durante il pattern matching. Per ottenere un comportamento simile in Java, sarebbe necessario ricorrere a soluzioni più complesse, ad esempio usando interfacce \texttt{sealed} e \texttt{record}:
 \begin{minted}[fontsize = \small]{Java}
-    sealed interface Shape permits Circle, Rectangle, Triangle, Point {}
+sealed interface Shape permits Circle, Rectangle, Triangle, Point {}
 
-    record Circle(double radius) implements Shape {}
-    record Rectangle(double width, double height) implements Shape {}
-    record Triangle(double a, double b, double c) implements Shape {}
-    record Point() implements Shape {}
+record Circle(double radius) implements Shape {}
+record Rectangle(double width, double height) implements Shape {}
+record Triangle(double a, double b, double c) implements Shape {}
+record Point() implements Shape {}
 
-    public double area(Shape shape) {
-        return switch (shape) {
-            case Circle c -> 3.14 * c.radius() * c.radius();
-            case Rectangle r -> r.width() * r.height();
-            case Triangle t -> {
-                // Compute area for triangle
-            }
-            case Point p -> 0.0;
-        };
-    }
+public double area(Shape shape) {
+    return switch (shape) {
+        case Circle c -> 3.14 * c.radius() * c.radius();
+        case Rectangle r -> r.width() * r.height();
+        case Triangle t -> {
+            // Compute area for triangle
+        }
+        case Point p -> 0.0;
+    };
+}
 \end{minted}
 In questo esempio, si definisce un'interfaccia \texttt{Shape} che è \texttt{sealed}, il che significa che solo le classi specificate (in questo caso, i record) possono implementarla. Ogni ``variante'' è rappresentata come un \texttt{record} che implementa l'interfaccia \texttt{Shape}. Il pattern matching viene eseguito utilizzando un costrutto \texttt{switch} che è in grado di estrarre i dati associati a ciascun record. Da osservare che questo approccio è più verboso e complesso rispetto alla semplice definizione di un enum in Rust. Tuttavia, in questo caso, Java garantisce l'esaustività del pattern matching grazie all'uso di interfacce \texttt{sealed}.
 
