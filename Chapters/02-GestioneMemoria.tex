@@ -360,10 +360,7 @@ Rust, invece, elimina del tutto l'uso \texttt{null}, prevenendo molti dei proble
         None,    // Non contiene alcun valore
     }
 \end{minted}
-L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire una rappresentazione sicura e non ambigua dell'assenza di un valore.
-
-%TODO: \footnote{In Rust una variante di un \texttt{enum} può contenere uno o più valori, ognuno con il suo tipo. In questo caso \texttt{Some(T)} contiene un valore di tipo \texttt{T}.} dopo "... dove Some(T)"
-\texttt{Option<T>} è un \texttt{enum} dove \texttt{Some(T)} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java è che, poiché in Rust una variabile non può mai assumere il valore \texttt{null},per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Utilizzando la classe \texttt{Person}\footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.} del listato \ref{lst:java-reference}, consideriamo il seguente esempio per mostrare l'importanza di \texttt{Option<T>} in Rust: 
+L'idea alla base di \texttt{Option<T>} è analoga a quella di \texttt{Optional<T>}: fornire una rappresentazione sicura e non ambigua dell'assenza di un valore. \texttt{Option<T>} è un \texttt{enum} dove \texttt{Some(T)} e \texttt{None} sono le sue due varianti. La differenza principale rispetto a Java è che, poiché in Rust una variabile non può mai assumere il valore \texttt{null}, per rappresentare l'assenza di valore il programmatore è costretto ad utilizzare \texttt{Option<T>}. Utilizzando la classe \texttt{Person}\footnote{Assumiamo che il campo \texttt{name} sia unico per ogni \texttt{Person}.} del listato \ref{lst:java-reference}, consideriamo il seguente esempio per mostrare l'importanza di \texttt{Option<T>} in Rust: 
 \begin{listing}[h]
     \begin{minted}[fontsize=\small]{java}
     public class PersonRepository{
